@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Royal Missions — Republic of Raeesi</title>
+  <meta name="description" content="Royal Missions: monthly builder challenges with published scoring, written feedback, and a transparent record of completed work in the Royal Ledger.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+
+  <main id="main">
+
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="decree-line">Stage II of the Republic</p>
+        <h1 class="page-title">Royal Missions.</h1>
+        <p class="page-lede">Monthly challenges where you build something real, show your skills, get honest feedback, and earn a public record of completed work. The jokes are in the presentation. The work is genuinely useful.</p>
+        <p class="hero-fine">Free to take part. A high score never guarantees funding, and funding never depends on a score alone.</p>
+      </div>
+    </section>
+
+    <!-- Current mission -->
+    <section class="m-section" id="current" aria-labelledby="current-title">
+      <div class="wrap">
+        <h2 id="current-title" class="h2-dark">The current Royal Mission.</h2>
+        <div id="current-missions"><p class="file-meta">Loading the missions…</p></div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="m-section alt" id="cycle" aria-labelledby="cycle-title">
+      <div class="wrap">
+        <h2 id="cycle-title" class="h2-dark">How a mission works.</h2>
+        <ol class="cycle">
+          <li><strong>Publish.</strong> I publish a mission with a brief, a deadline and the scoring criteria.</li>
+          <li><strong>Register.</strong> You register your interest (optional but helpful).</li>
+          <li><strong>Build.</strong> Work alone or form a team. Credit everyone.</li>
+          <li><strong>Submit.</strong> Send your project through the Mission Desk before the deadline.</li>
+          <li><strong>Review.</strong> Reviewers score it against the published criteria.</li>
+          <li><strong>Feedback.</strong> Scores, reasons and comments appear in the Royal Ledger.</li>
+          <li><strong>Reassess.</strong> If you think a score is wrong, request a reassessment.</li>
+          <li><strong>Record.</strong> Your achievement is added to the Ledger, including any corrections.</li>
+          <li><strong>Invitations.</strong> Outstanding builders may be invited to further opportunities. That’s an invitation, not a promise.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- All missions -->
+    <section class="m-section" id="all-missions" aria-labelledby="all-title">
+      <div class="wrap">
+        <h2 id="all-title" class="h2-dark">All missions.</h2>
+        <div class="filters" id="mission-filters" role="group" aria-label="Filter missions by status"></div>
+        <div class="mission-grid" id="mission-grid"></div>
+      </div>
+    </section>
+
+    <!-- Scoring -->
+    <section class="m-section scoring" id="scoring" aria-labelledby="scoring-title">
+      <div class="wrap">
+        <h2 id="scoring-title" class="h2-light">How scoring works.</h2>
+        <p class="lede-light" id="scale-text"></p>
+        <div class="table-wrap">
+          <table class="crit-table">
+            <caption class="sr-only">Scoring criteria and weights</caption>
+            <thead><tr><th scope="col">Criterion</th><th scope="col">Weight</th><th scope="col">What reviewers look for</th></tr></thead>
+            <tbody id="criteria-body"></tbody>
+          </table>
+        </div>
+        <div class="score-cols">
+          <div>
+            <h3>The rules</h3>
+            <ul class="rule-list" id="rules-list"></ul>
+          </div>
+          <div>
+            <h3>The sums</h3>
+            <p id="sums-text"></p>
+            <h3>Levels</h3>
+            <ul class="rule-list" id="levels-list"></ul>
+            <p class="file-meta light">Levels are recognition for completed work. They are not a funding qualification.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission Desk -->
+    <section class="m-section" id="desk" aria-labelledby="desk-title">
+      <div class="wrap">
+        <h2 id="desk-title" class="h2-dark">The Mission Desk.</h2>
+        <p class="lede-dark">Everything you do on a mission starts here. You need your <strong>member key</strong>, which is the petition reference (like <code>RAE-2026-ABC234</code>) on your Petition Received screen. We use it to check you’ve petitioned. It is never shown publicly. <a href="index.html#petition" data-apply>Haven’t petitioned yet?</a></p>
+        <div class="desk" id="desk-root"></div>
+      </div>
+    </section>
+
+    <!-- Showcase -->
+    <section class="m-section alt" id="showcase" aria-labelledby="showcase-title">
+      <div class="wrap">
+        <h2 id="showcase-title" class="h2-dark">Projects and completed work.</h2>
+        <p class="lede-dark">Work that builders have chosen to share. Projects appear here only after I’ve reviewed them. <strong>A project being shown is not independent verification</strong> that it works or that the claims are true: it’s what the builder submitted, with the reviewer’s comment alongside.</p>
+        <div class="toolbar">
+          <label class="sr-only" for="show-search">Search projects and builders</label>
+          <input type="search" id="show-search" placeholder="Search projects, builders, tools…" autocomplete="off">
+          <label class="sr-only" for="show-mission">Filter by mission</label>
+          <select id="show-mission"><option value="">All missions</option></select>
+        </div>
+        <div id="showcase-grid" class="show-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Ledger -->
+    <section class="m-section" id="ledger" aria-labelledby="ledger-title">
+      <div class="wrap">
+        <h2 id="ledger-title" class="h2-dark">The Royal Ledger.</h2>
+        <p class="lede-dark">A public record of completed missions, with every score explained. Points reward actual work. Open any builder to see exactly why points were awarded or deducted, and request a reassessment if you think something is wrong.</p>
+        <div id="ledger-root" aria-live="polite"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <dialog id="mission-dialog" class="arch-dialog mission-dialog" aria-labelledby="md-title">
+    <div class="dlg-in dlg-text" id="md-in"></div>
+  </dialog>
+
+  <div id="site-footer"></div>
+
+  <script src="config.js"></script>
+  <script src="missions-data.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="missions.js"></script>
+</body>
+</html>

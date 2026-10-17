@@ -28,21 +28,7 @@
     </symbol>
   </svg>
 
-  <header class="topbar">
-    <div class="wrap topbar-in">
-      <a class="brand" href="#top" aria-label="Pitch to Raeesi, home">
-        <img class="brand-crest" src="images/crest-small.png" alt="" width="46" height="35">
-        <span class="brand-name" data-cfg="brand.siteName">Pitch to Raeesi</span>
-      </a>
-      <nav class="nav" aria-label="Main">
-        <a href="#treasury">The Royal Treasury</a>
-        <a href="#academy">The Academy</a>
-        <a href="#republic">The Republic</a>
-        <a href="#trust">Privacy</a>
-      </nav>
-      <a class="btn btn-gold btn-sm" href="#petition" data-apply>Submit Your Petition</a>
-    </div>
-  </header>
+  <div id="site-header"></div>
 
   <main id="main">
 
@@ -94,6 +80,61 @@
       </div>
     </div>
 
+    <!-- ======================= THE FOUR STAGES ======================= -->
+    <section class="stages" id="stages" aria-labelledby="stages-title">
+      <div class="wrap">
+        <h2 id="stages-title" class="h2-dark">The four stages of the Republic.</h2>
+        <p class="lede-dark">A path, not a promise. Each stage is real and has its own rules, and reaching one does not guarantee the next. Joining stays free.</p>
+        <ol class="stage-list">
+          <li class="stage">
+            <span class="stage-num" aria-hidden="true">I</span>
+            <div class="stage-body">
+              <p class="stage-tag">Stage I · Free to join</p>
+              <h3>The Academy of Builders</h3>
+              <p>Mentorship, peer collaboration, skill-sharing, founder discovery, and chances to meet other builders. It’s free, and it doesn’t depend on funding.</p>
+              <a class="stage-link" href="#petition" data-apply>Submit your petition</a>
+            </div>
+          </li>
+          <li class="stage">
+            <span class="stage-num" aria-hidden="true">II</span>
+            <div class="stage-body">
+              <p class="stage-tag">Stage II · Monthly</p>
+              <h3>Royal Missions</h3>
+              <p>Monthly challenges where you build something real, show your skills, get feedback, and earn a transparent record of completed work in the Royal Ledger.</p>
+              <a class="stage-link" href="missions.html">Enter the Royal Missions</a>
+            </div>
+          </li>
+          <li class="stage">
+            <span class="stage-num" aria-hidden="true">III</span>
+            <div class="stage-body">
+              <p class="stage-tag">Stage III · Selective</p>
+              <h3>The Royal Treasury</h3>
+              <p>Selected founders can apply for seed funding from a total pool of <span data-pool>₹1,00,000</span>. I weigh potential, feasibility, progress, execution and available funds. A Royal Ledger score may inform my decision, but it never decides it automatically.</p>
+              <a class="stage-link" href="#treasury">Inspect the Treasury</a>
+            </div>
+          </li>
+          <li class="stage">
+            <span class="stage-num" aria-hidden="true">IV</span>
+            <div class="stage-body">
+              <p class="stage-tag">Stage IV · As the Republic grows</p>
+              <h3>The Empire Expands</h3>
+              <p>Founder gatherings, introductions, company opportunities, collaborations and, as ventures grow, the possibility of follow-on investment. Each opportunity has its own eligibility, availability and terms. Follow-on investment is a possibility, not a promise.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="stage-extras">
+          <a class="extra-card" href="archive.html">
+            <img src="images/archive/0004-royal-guard-transit-thumb.jpg" alt="" width="160" height="120" loading="lazy">
+            <span><strong>The Royal Archives</strong><br>A satirical, entirely fictional record of the Supreme Leader’s life. Every image is staged or edited for comedy.</span>
+          </a>
+          <a class="extra-card" href="network.html">
+            <span class="soon-tag" style="transform:none;border-style:solid">New</span>
+            <span><strong>The Builders’ Network</strong><br>Pitch ideas, find co-founders and collaborators, or get free publicity if you choose. Free to join; members are approved personally.</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- ======================= TREASURY ======================= -->
     <section class="treasury" id="treasury" aria-labelledby="treasury-title">
       <div class="wrap">
@@ -130,6 +171,7 @@
                 <li>It is not a prize, an automatic grant, or guaranteed cash.</li>
                 <li>It is not <span data-pool>₹1,00,000</span> for every applicant.</li>
                 <li>A great petition does not mean a cheque. It may mean mentorship, introductions and a push.</li>
+                <li>A high Royal Ledger score is not a cheque. Missions and scores can inform my decision; they never decide it automatically.</li>
                 <li>Nobody gets “selected” by an algorithm. I read the petitions myself.</li>
               </ul>
             </div>
@@ -332,16 +374,10 @@
 
   </main>
 
-  <footer class="footer">
-    <div class="wrap footer-in">
-      <img class="footer-crest" src="images/crest-small.png" alt="" width="150" height="115" loading="lazy">
-      <p class="footer-brand"><span data-cfg="brand.countryName">The Republic of Raeesi</span></p>
-      <p class="footer-contact" id="footer-contact" hidden></p>
-      <p class="footer-fine">The Republic is a fictional, satirical country. The mission is real; the royal dramatics are not legally binding. Nothing on this site is an offer of investment, a guarantee of funding, or financial or legal advice. Any investment would be agreed separately, in writing.</p>
-    </div>
-  </footer>
+  <div id="site-footer"></div>
 
   <script src="config.js"></script>
+  <script src="shared.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

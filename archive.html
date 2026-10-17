@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Royal Archives — Republic of Raeesi</title>
+  <meta name="description" content="The Royal Archives: a satirical, entirely fictional image library documenting the ceremonies, decrees and questionable decisions of the Supreme Leader of the Republic of Raeesi.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="page-hero archive-hero">
+      <div class="wrap">
+        <p class="decree-line">Ministry of Records, Department of Unnecessary Photography</p>
+        <h1 class="page-title">The Royal Archives.</h1>
+        <p class="page-lede">An official record of the Supreme Leader’s ceremonies, decrees and questionable decisions, preserved for a nation that never asked.</p>
+        <p class="satire-note" role="note"><strong>Satire notice:</strong> every image here is fictional, staged or digitally edited for comedy. None of it shows a real event or a real news story.</p>
+      </div>
+    </section>
+
+    <section class="archive-body" aria-label="Archive gallery">
+      <div class="wrap">
+        <div id="archive-featured"></div>
+
+        <div class="filters" role="group" aria-label="Filter the archive by category" id="archive-filters"></div>
+        <p class="result-line" id="archive-count" aria-live="polite"></p>
+        <div class="arch-grid" id="archive-grid"></div>
+        <noscript><p class="notice">The archive needs JavaScript to display. Please turn it on and reload this page.</p></noscript>
+
+        <p class="arch-foot">The Royal Archives are curated by the Supreme Leader personally, who is currently recruiting a photographer. <a href="index.html#petition" data-apply>Submit a petition</a> if you know one.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="arch-dialog" aria-labelledby="dlg-title" class="arch-dialog">
+    <div class="dlg-in" id="dlg-in"></div>
+  </dialog>
+
+  <div id="site-footer"></div>
+
+  <script src="config.js"></script>
+  <script src="archive-data.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="archive.js"></script>
+</body>
+</html>

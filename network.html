@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Builders’ Network — Republic of Raeesi</title>
+  <meta name="description" content="The Builders’ Network: pitch ideas, find co-founders and collaborators, and get free publicity if you choose. Free to join.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="decree-line">The Builders’ Network</p>
+        <h1 class="page-title">Find your people.</h1>
+        <p class="page-lede">Pitch an idea, find a co-founder or collaborator, offer your skills, and, if you want it, get free publicity on this website. Joining is free. You choose what anyone can see.</p>
+        <p class="hero-fine">Members are approved by the Supreme Leader personally. There are no private chats: contact happens through requests that you can accept or ignore.</p>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="take-part-title">
+      <div class="wrap">
+        <h2 id="take-part-title" class="h2-dark">Choose how you take part.</h2>
+        <div class="perk-grid">
+          <article class="perk">
+            <h3>Free publicity</h3>
+            <p>Want to be seen? Choose a <strong>public profile</strong> and, if you like, public pitches. They appear on this page for anyone to find. Adults only; members under 18 are never listed publicly.</p>
+          </article>
+          <article class="perk">
+            <h3>Find co-founders</h3>
+            <p>Say which roles and skills you need and which you offer. The network suggests <strong>possible</strong> collaborators. You send a request; they decide whether to reply.</p>
+          </article>
+          <article class="perk">
+            <h3>Build and be recognised</h3>
+            <p>Use <a href="missions.html">Royal Missions</a> to show real work. Strong work is recorded in the Royal Ledger and may earn a Republic certificate of completion, and it puts you in view for the Royal Treasury. That is selective, and <strong>never guaranteed</strong>.</p>
+          </article>
+        </div>
+        <p class="file-meta">Anything you make public can be seen and copied by anyone, and posting an idea here does not legally protect it. Keep confidential details to yourself, or share them privately once you trust the person.</p>
+      </div>
+    </section>
+
+    <section class="m-section alt" id="network" aria-labelledby="net-title">
+      <div class="wrap">
+        <h2 id="net-title" class="h2-dark">The network.</h2>
+        <div id="net-status" role="status" aria-live="polite"></div>
+        <div id="net-app"><p class="file-meta">Loading…</p></div>
+        <noscript><p class="notice">The network needs JavaScript. Please turn it on and reload this page.</p></noscript>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="net-dialog" class="arch-dialog mission-dialog" aria-labelledby="nd-title">
+    <div class="dlg-in dlg-text" id="nd-in"></div>
+  </dialog>
+
+  <div id="site-footer"></div>
+
+  <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="network.js"></script>
+</body>
+</html>

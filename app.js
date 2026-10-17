@@ -43,9 +43,9 @@
     var pool = formatPool();
     if (pool) {
       $$("[data-pool], [data-pool-words]").forEach(function (el) { el.textContent = pool; });
-      document.title = "Pitch to Raeesi — " + pool + " seed pool, free mentorship";
+      if ($("#petition-root")) document.title = "Pitch to Raeesi — " + pool + " seed pool, free mentorship";
     }
-    if (get("brand.siteName")) document.title = document.title.replace("Pitch to Raeesi", get("brand.siteName"));
+    if ($("#petition-root") && get("brand.siteName")) document.title = document.title.replace("Pitch to Raeesi", get("brand.siteName"));
 
     // contact email
     var email = get("contact.email");
@@ -72,7 +72,7 @@
     // open / closed
     var open = get("applications.open") !== false;
     if (!open) {
-      $("#hero-stamp-text").textContent = "Petitions closed";
+      if ($("#hero-stamp-text")) $("#hero-stamp-text").textContent = "Petitions closed";
       $$("[data-apply]").forEach(function (a) { a.textContent = "Petitions Closed"; });
     }
   }
@@ -95,6 +95,7 @@
     }
   }
   function initVideo() {
+    if (!$("#video-frame") && !$("#video-fallback")) return;      // not the home page
     var url = get("video.url");
     var id = parseYouTubeId(url);
     var link = $("#video-link"), fbLink = $("#video-fallback");
@@ -694,6 +695,7 @@
     sendAll().then(function (res) {
       state.done = true; state.submitting = false;
       clearDraft();
+      try { localStorage.setItem("raeesi.memberRef", res.ref || state.ref); } catch (e) {}
       renderWelcome(res.ref || state.ref, res.duplicate, res.joinUrl);
     }).catch(function (err) {
       state.submitting = false; state.lastFailed = true; setBusy(false);
@@ -786,7 +788,8 @@
       "<li><strong>I read your petition myself.</strong> It’s in a private sheet that only I can open." + (timeline ? " " + esc(timeline) : " I can’t promise how fast, so thank you for your patience.") + "</li>" +
       "<li><strong>I’ll reach out by " + esc(contactWay) + ".</strong> If your petition is Granted an Audience, that means I’d like to talk with you properly. It isn’t a funding decision.</li>" +
       "<li><strong>Join the community.</strong> " + (joinUrl ? 'Tap the button below to join the Republic’s WhatsApp group. That’s where the mentorship community lives.' : "I’m onboarding people personally to begin with, so I’ll tell you how to join when I get in touch.") + "</li>" +
-      "<li><strong>Keep building meanwhile.</strong> Pick the 30-day test you described in question 8 and start it. It’s the best thing you can bring to our first conversation.</li></ol>" +
+      "<li><strong>Keep building meanwhile.</strong> Pick the 30-day test you described in question 8 and start it. It’s the best thing you can bring to our first conversation.</li>" +
+      '<li><strong>Try a Royal Mission.</strong> Your reference number above is your member key. Use it at the <a href="missions.html#desk">Mission Desk</a> to take part in the monthly missions.</li></ol>' +
       (joinUrl ? '<p style="text-align:center"><a class="btn btn-gold" href="' + esc(joinUrl) + '" target="_blank" rel="noopener">' + esc(get("community.joinLabel") || "Join the Republic’s WhatsApp group") + "</a></p>" : "") +
       "<h3>Please remember</h3><ul>" +
       "<li>The Academy of Builders is free. It doesn’t guarantee one-to-one time, a set number of sessions, or funding.</li>" +
