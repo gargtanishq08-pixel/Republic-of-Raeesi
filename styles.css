@@ -555,3 +555,23 @@ legend.label { display: block; }
 .btn[aria-pressed="true"] { background: rgba(139,20,38,.12); }
 #net-status .notice { margin-top: 0; }
 #net-dialog .field-error:empty { display: none; }
+
+/* ---------- Network: pictures, profile cards, in-page video ---------- */
+.avatar { display: inline-block; border-radius: 50%; object-fit: cover; background: var(--burgundy); border: 2px solid var(--gold); flex: none; }
+.avatar.ph { display: inline-grid; place-items: center; color: var(--gold-light); font-family: var(--font-display); font-weight: 900; }
+.avatar.xs { width: 1.7rem; height: 1.7rem; border-width: 1px; font-size: .7rem; }
+.avatar.sm { width: 2.6rem; height: 2.6rem; font-size: .95rem; }
+.avatar.md { width: 3.6rem; height: 3.6rem; font-size: 1.2rem; }
+.avatar.lg { width: 6.5rem; height: 6.5rem; font-size: 2rem; border-width: 3px; }
+.byline { display: flex; align-items: center; gap: .5rem; }
+.pc-head { display: flex; align-items: center; gap: .85rem; margin-bottom: .5rem; }
+.pc-head.big { gap: 1.25rem; margin-bottom: 1rem; }
+.pc-head h3 { margin: 0; }
+.headline { margin: 0; font-style: italic; color: var(--ink-soft); }
+.authbar.signed .who { flex: 1 1 12rem; }
+.authbar.signed { justify-content: flex-start; }
+.avatar-field { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; margin-bottom: 1.5rem; }
+.avatar-field > div:last-child { flex: 1 1 16rem; }
+.avatar-field label { font-weight: 600; display: block; margin-bottom: .25rem; }
+.dlg-text .video-frame { border-width: 2px; outline: 0; margin-top: .5rem; }
+.dlg-text .video-frame iframe { border: 0; }
