@@ -12,15 +12,17 @@
     { t: "The Four Stages",    href: h("stages") },
     { t: "Royal Missions",     href: "missions.html", page: "missions.html" },
     { t: "The Network",        href: "network.html", page: "network.html" },
+    { t: "Newsroom",           href: "newsroom.html", page: "newsroom.html" },
     { t: "The Royal Treasury", href: h("treasury") },
-    { t: "Royal Archives",     href: "archive.html", page: "archive.html" },
-    { t: "Privacy",            href: h("trust") }
+    { t: "Royal Archives",     href: "archive.html", page: "archive.html" }
   ];
+  var FOOT_LINKS = LINKS.concat([{ t: "Privacy", href: h("trust") }]);
 
   function linkHtml(l) {
     return '<a href="' + l.href + '"' + (l.page === path ? ' aria-current="page"' : "") + ">" + l.t + "</a>";
   }
   var navHtml = LINKS.map(linkHtml).join("");
+  var footNavHtml = FOOT_LINKS.map(linkHtml).join("");
 
   var header =
     '<header class="topbar">' +
@@ -45,7 +47,7 @@
       '<div class="wrap footer-in">' +
         '<img class="footer-crest" src="images/crest-small.png" alt="" width="150" height="115" loading="lazy">' +
         '<p class="footer-brand"><span data-cfg="brand.countryName">The Republic of Raeesi</span></p>' +
-        '<nav class="footer-nav" aria-label="Footer">' + navHtml + "</nav>" +
+        '<nav class="footer-nav" aria-label="Footer">' + footNavHtml + "</nav>" +
         '<p class="footer-contact" id="footer-contact" hidden></p>' +
         '<p class="footer-fine">The Republic is a fictional, satirical country. The mission is real; the royal dramatics are not legally binding. Nothing on this site is an offer of investment, a guarantee of funding, or financial or legal advice. Any investment would be agreed separately, in writing.</p>' +
       "</div>" +

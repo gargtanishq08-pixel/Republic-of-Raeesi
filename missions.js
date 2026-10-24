@@ -74,7 +74,9 @@
      MISSIONS
      ====================================================================== */
   var STATUS_ORDER = ["Open", "In Progress", "Under Review", "Completed", "Archived"];
-  var PUBLIC = M.missions.filter(function (m) { return m.status && m.status !== "Draft"; });
+  var PUBLIC = [];
+  function setMissions(list) { M.missions = list; PUBLIC = list.filter(function (x) { return x.status && x.status !== "Draft"; }); }
+  setMissions(M.missions);
   function missionById(id) { return M.missions.filter(function (m) { return m.id === id; })[0]; }
   function missionLabel(id) { var m = missionById(id); return m ? "Mission " + m.number + ": " + m.title : (id || ""); }
 
@@ -619,8 +621,27 @@
   }, true);
 
   /* ---------- start ---------- */
-  renderCurrent(); renderMissionList(); renderScoring();
-  loadDrafts(); renderDesk(); loadPublic();
-  var h = (location.hash || "").replace("#", "");
-  if (/^M\d{3}$/.test(h)) openBrief(h);
+  // Missions come from the database (managed in admin.html). If it can't be reached, the old built-in list is used.
+  function fromDb(rows) {
+    return rows.map(function (r) {
+      return { id: r.id, number: r.number, title: r.title, status: r.status, difficulty: r.difficulty, categories: r.categories || [], skills: r.skills || [],
+        summary: r.summary || "", objectives: r.objectives || [], deliverables: r.deliverables || [], instructions: r.instructions || [],
+        opens: r.opens || "", deadline: r.deadline || "", reviewBy: r.review_by || "" };
+    });
+  }
+  function loadMissionsFromDb() {
+    var cfg = window.RAEESI_SUPABASE || {};
+    if (!cfg.url || !cfg.anonKey || !window.supabase || !window.supabase.createClient) return Promise.resolve(null);
+    var sb = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+    var timeout = new Promise(function (res) { setTimeout(function () { res(null); }, 7000); });
+    var q = sb.from("missions").select("*").order("id", { ascending: true }).then(function (r) { return r.error ? null : fromDb(r.data || []); }, function () { return null; });
+    return Promise.race([q, timeout]);
+  }
+  loadMissionsFromDb().then(function (list) {
+    if (list) setMissions(list);
+    renderCurrent(); renderMissionList(); renderScoring();
+    loadDrafts(); renderDesk(); loadPublic();
+    var h = (location.hash || "").replace("#", "");
+    if (/^M\d{3}$/.test(h)) openBrief(h);
+  });
 })();

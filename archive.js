@@ -194,5 +194,23 @@
   }
   window.addEventListener("hashchange", fromHash);
 
-  renderFeatured(); renderFilters(); renderGrid(); fromHash();
+  function start() { renderFeatured(); renderFilters(); renderGrid(); fromHash(); }
+
+  // The archive comes from the database (managed in admin.html). If it can't be reached, the old built-in list is used.
+  function loadFromDb() {
+    var cfg = window.RAEESI_SUPABASE || {};
+    if (!cfg.url || !cfg.anonKey || !window.supabase || !window.supabase.createClient) return Promise.resolve(null);
+    var sb = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+    var timeout = new Promise(function (res) { setTimeout(function () { res(null); }, 7000); });
+    var q = sb.from("archive_items").select("*").order("number", { ascending: true }).then(function (r) {
+      if (r.error) return null;
+      return (r.data || []).map(function (x) {
+        return { number: x.number, title: x.title, category: x.category, classification: x.classification, caption: x.caption, statement: x.statement,
+          event: x.event, date: x.item_date, image: x.image, thumb: x.thumb || x.image, alt: x.alt || x.title, featured: x.featured,
+          downloadable: x.downloadable, pending: x.pending };
+      });
+    }, function () { return null; });
+    return Promise.race([q, timeout]);
+  }
+  loadFromDb().then(function (list) { if (list) ITEMS = list; start(); });
 })();
