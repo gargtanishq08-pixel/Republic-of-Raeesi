@@ -16,7 +16,7 @@
     { t: "The Royal Treasury", href: h("treasury") },
     { t: "Royal Archives",     href: "archive.html", page: "archive.html" }
   ];
-  var FOOT_LINKS = LINKS.concat([{ t: "Privacy", href: h("trust") }]);
+  var FOOT_LINKS = LINKS.concat([{ t: "Sponsor us", href: "sponsors.html", page: "sponsors.html" }, { t: "Privacy", href: h("trust") }]);
 
   function linkHtml(l) {
     return '<a href="' + l.href + '"' + (l.page === path ? ' aria-current="page"' : "") + ">" + l.t + "</a>";

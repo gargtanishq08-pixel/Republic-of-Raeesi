@@ -99,6 +99,12 @@
   }
   function stClass(s) { return "st-" + String(s).toLowerCase().replace(/\s+/g, "-"); }
 
+  function sponsorLine(m) {
+    if (!m.sponsor_name) return "";
+    var nm = esc(m.sponsor_name);
+    return '<p class="mc-meta">Sponsored by <strong>' + (m.sponsor_url && validUrl(m.sponsor_url) ? '<a href="' + esc(m.sponsor_url) + '" target="_blank" rel="noopener noreferrer nofollow">' + nm + "</a>" : nm) + "</strong></p>";
+  }
+
   function missionCard(m, big) {
     var mult = M.difficultyMultiplier[m.difficulty] || 1;
     var dates = [];
@@ -116,6 +122,7 @@
       '<div class="mc-head"><span class="mc-num">Mission ' + esc(m.number) + '</span><span class="badge ' + stClass(m.status) + '">' + esc(m.status) + "</span></div>" +
       "<h3>" + esc(m.title) + "</h3>" +
       '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " points) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
+      sponsorLine(m) +
       "<p>" + esc(m.summary) + "</p>" +
       (dates.length ? '<p class="mc-dates">' + esc(dates.join(" · ")) + "</p>" : "") +
       ((m.skills || []).length ? '<p class="mc-skills"><strong>Skills:</strong> ' + esc(m.skills.join(", ")) + "</p>" : "") +
@@ -164,6 +171,7 @@
       '<p class="mc-num">Mission ' + esc(m.number) + ' &middot; <span class="badge ' + stClass(m.status) + '">' + esc(m.status) + "</span></p>" +
       '<h2 id="md-title" class="md-title">' + esc(m.title) + "</h2>" +
       '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " points) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
+      sponsorLine(m) +
       "<p>" + esc(m.summary) + "</p>" +
       (m.opens || m.deadline || m.reviewBy ? '<p class="mc-dates">' + esc([m.opens && "Opens " + fmtDate(m.opens), m.deadline && "Deadline " + fmtDate(m.deadline), m.reviewBy && "Results by " + fmtDate(m.reviewBy)].filter(Boolean).join(" · ")) + "</p>" : "") +
       "<h3>Objectives</h3><ul>" + li(m.objectives) + "</ul>" +
@@ -626,7 +634,7 @@
     return rows.map(function (r) {
       return { id: r.id, number: r.number, title: r.title, status: r.status, difficulty: r.difficulty, categories: r.categories || [], skills: r.skills || [],
         summary: r.summary || "", objectives: r.objectives || [], deliverables: r.deliverables || [], instructions: r.instructions || [],
-        opens: r.opens || "", deadline: r.deadline || "", reviewBy: r.review_by || "" };
+        opens: r.opens || "", deadline: r.deadline || "", reviewBy: r.review_by || "", sponsor_name: r.sponsor_name || "", sponsor_url: r.sponsor_url || "" };
     });
   }
   function loadMissionsFromDb() {

@@ -18,14 +18,14 @@
   function roman(n) { var m = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]], s = ""; m.forEach(function (p) { while (n >= p[0]) { s += p[1]; n -= p[0]; } }); return s; }
   function slugify(t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60); }
 
-  var TABS = [["review", "Review"], ["members", "Members"], ["pitches", "Pitches"], ["missions", "Missions"], ["archive", "Archive"], ["stories", "Stories"]];
+  var TABS = [["review", "Review"], ["members", "Members"], ["pitches", "Pitches"], ["missions", "Missions"], ["archive", "Archive"], ["stories", "Stories"], ["sponsors", "Sponsors"]];
   var S = { sb: null, user: null, admin: false, tab: "review", checked: false, memberQ: "" };
   var CATEGORIES = ["Official Portraits", "State Symbols", "Military Ceremonies", "State Banquets", "Foreign Diplomacy", "Supreme Leader's Decrees", "National Achievements", "Royal Palace Life", "Royal Holidays", "The Supreme Leader's Personal Opinions", "Classified Affairs"];
 
   /* ---------- pictures ---------- */
   function mediaUrl(path) { return String(CFG.url).replace(/\/$/, "") + "/storage/v1/object/public/media/" + path; }
   function pathFromUrl(u) { var m = String(u || "").match(/\/storage\/v1\/object\/public\/media\/(.+)$/); return m ? m[1] : null; }
-  function resizeToBlob(file, maxEdge, quality) {
+  function resizeToBlob(file, maxEdge, quality, type) {
     return new Promise(function (resolve, reject) {
       if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return reject(new Error("Please choose a JPG, PNG or WebP picture."));
       var url = URL.createObjectURL(file), img = new Image();
@@ -33,14 +33,14 @@
         var k = Math.min(1, maxEdge / Math.max(img.width, img.height)), w = Math.round(img.width * k), h = Math.round(img.height * k);
         var c = document.createElement("canvas"); c.width = w; c.height = h;
         c.getContext("2d").drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
-        c.toBlob(function (b) { b ? resolve(b) : reject(new Error("Couldn’t process that picture.")); }, "image/jpeg", quality);
+        c.toBlob(function (b) { b ? resolve(b) : reject(new Error("Couldn’t process that picture.")); }, type || "image/jpeg", quality);
       };
       img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("Couldn’t read that picture.")); };
       img.src = url;
     });
   }
   function upload(path, blob) {
-    return S.sb.storage.from("media").upload(path, blob, { contentType: "image/jpeg", upsert: false }).then(function (r) { if (r.error) throw r.error; return mediaUrl(path); });
+    return S.sb.storage.from("media").upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false }).then(function (r) { if (r.error) throw r.error; return mediaUrl(path); });
   }
   function removeFiles(urls) {
     var paths = urls.map(pathFromUrl).filter(Boolean);
@@ -79,7 +79,7 @@
   function loadTab() {
     var host = $("#adm-panel"); if (!host) return;
     host.innerHTML = '<p class="file-meta">Loading…</p>';
-    var fn = { review: tabReview, members: tabMembers, pitches: tabPitches, missions: tabMissions, archive: tabArchive, stories: tabStories }[S.tab];
+    var fn = { review: tabReview, members: tabMembers, pitches: tabPitches, missions: tabMissions, archive: tabArchive, stories: tabStories, sponsors: tabSponsors }[S.tab];
     fn(host);
   }
   function btn(act, id, label, cls, extra) { return '<button type="button" class="btn ' + (cls || "btn-line") + ' btn-sm" data-act="' + act + '" data-id="' + esc(id) + '"' + (extra || "") + ">" + label + "</button>"; }
@@ -184,6 +184,18 @@
     }).catch(function (e) { host.innerHTML = '<div class="notice warn"><p>' + errText(e) + "</p></div>"; });
   }
 
+  function tabSponsors(host) {
+    S.sb.from("sponsors").select("*").order("sort_order", { ascending: true }).then(function (r) {
+      if (r.error) throw r.error; S.cache = { sponsors: r.data || [] };
+      host.innerHTML = '<div class="mc-actions" style="margin-top:0"><button type="button" class="btn btn-gold btn-sm" data-act="new-sponsor">Add a sponsor</button></div>' +
+        '<p class="file-meta">Sponsors show on the Sponsors page only once Published, and only after you confirm they agreed to be listed. The page stays empty until you add a real one.</p>' +
+        (r.data.length ? '<div class="adm-grid">' + r.data.map(function (x) {
+          return '<div class="adm-card">' + (x.logo ? '<img src="' + esc(x.logo) + '" alt="" loading="lazy" style="object-fit:contain;background:#fff">' : '<div class="adm-ph">No logo</div>') +
+            "<p><strong>" + esc(x.name) + '</strong></p><p class="file-meta">' + esc(x.note || "") + (x.published ? " &middot; Published" : " &middot; Hidden") + '</p><div class="mc-actions">' + btn("edit-sponsor", x.id, "Edit") + btn("delete-sponsor", x.id, "Delete") + "</div></div>";
+        }).join("") + "</div>" : '<p class="file-meta">No sponsors yet.</p>');
+    }).catch(function (e) { host.innerHTML = '<div class="notice warn"><p>' + errText(e) + " (If you haven’t yet: re-run supabase-setup.sql.)</p></div>"; });
+  }
+
   /* ---------- dialog ---------- */
   var dlg = $("#adm-dialog"), dlgIn = $("#ad-in");
   function showDialog(html) {
@@ -215,6 +227,7 @@
       fld("mi-obj", "Objectives", ta("mi-obj", (m.objectives || []).join("\n"), 5), "One per line.") + fld("mi-del", "What to hand in", ta("mi-del", (m.deliverables || []).join("\n"), 4), "One per line.") + fld("mi-ins", "How to take part", ta("mi-ins", (m.instructions || []).join("\n"), 4), "One per line.") +
       '<div class="row-2">' + fld("mi-opens", "Opens", '<input type="date" id="mi-opens" value="' + esc(m.opens || "") + '">') + fld("mi-dead", "Deadline", '<input type="date" id="mi-dead" value="' + esc(m.deadline || "") + '">') + "</div>" +
       fld("mi-rev", "Results by", '<input type="date" id="mi-rev" value="' + esc(m.review_by || "") + '">') +
+      '<div class="row-2">' + fld("mi-sname", "Sponsored by (optional)", inp("mi-sname", m.sponsor_name, "maxlength=\"80\""), "Only if they agreed to be named.") + fld("mi-surl", "Sponsor website (optional)", '<input type="url" id="mi-surl" maxlength="300" placeholder="https://" value="' + esc(m.sponsor_url || "") + '">') + "</div>" +
       '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save mission</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
   }
 
@@ -258,6 +271,21 @@
       "<p>Don’t publish anyone’s story, photo or name without their agreement. Don’t claim investment or results that aren’t real.</p></div>" +
       chkb("st-pub", "Published (visible on the public Newsroom)", s.published) +
       '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save story</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
+  }
+
+  function sponsorForm(x) {
+    var isNew = !x;
+    x = x || { id: "", name: "", logo: "", website: "", note: "", permission_confirmed: false, published: false, sort_order: 0 };
+    return '<h2 id="ad-title" class="md-title">' + (isNew ? "Add a sponsor" : "Edit sponsor") + '</h2><form data-form="sponsor" data-id="' + esc(x.id) + '" data-old-logo="' + esc(x.logo || "") + '">' +
+      fld("sp-name", "Name *", inp("sp-name", x.name, 'required maxlength="80"')) +
+      fld("sp-logo", "Logo", '<input type="file" id="sp-logo" accept="image/jpeg,image/png,image/webp">' + (x.logo ? '<p class="file-meta">Current logo is kept unless you choose a new one.</p>' : ""), "A clear image on a plain or transparent background. Optional: the name shows if there’s no logo.") +
+      fld("sp-web", "Website", '<input type="url" id="sp-web" maxlength="300" placeholder="https://" value="' + esc(x.website || "") + '">') +
+      fld("sp-note", "What they sponsor (one line)", inp("sp-note", x.note, 'maxlength="160" placeholder="e.g. The Mission III prize"')) +
+      fld("sp-order", "Order (smaller numbers first)", '<input type="number" id="sp-order" value="' + esc(x.sort_order || 0) + '">') +
+      '<div class="panel"><h3>Before you show them</h3>' + chkb("sp-perm", "This organisation has agreed, in writing or by message, to be listed as a sponsor and to us using their name and logo.", x.permission_confirmed) +
+      "<p>Don’t list anyone who hasn’t agreed, and don’t call a sponsor a partner.</p></div>" +
+      chkb("sp-pub", "Published (visible on the Sponsors page)", x.published) +
+      '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save sponsor</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
   }
 
   /* ---------- clicks ---------- */
@@ -304,6 +332,12 @@
       var it = (C.archive || []).filter(function (x) { return x.number === id; })[0];
       if (confirm("Delete archive " + id + " for good?")) sb.from("archive_items").delete().eq("number", id).then(function (r) { if (r.error) return say(errText(r.error), true); if (it) removeFiles([it.image, it.thumb]); say("Archive item deleted."); loadTab(); }); return;
     }
+    if (act === "new-sponsor") return showDialog(sponsorForm());
+    if (act === "edit-sponsor") return showDialog(sponsorForm((C.sponsors || []).filter(function (x) { return x.id === id; })[0]));
+    if (act === "delete-sponsor") {
+      var sp = (C.sponsors || []).filter(function (x) { return x.id === id; })[0];
+      if (confirm("Delete this sponsor for good?")) sb.from("sponsors").delete().eq("id", id).then(function (r) { if (r.error) return say(errText(r.error), true); if (sp) removeFiles([sp.logo]); say("Sponsor deleted."); loadTab(); }); return;
+    }
     if (act === "new-story") return showDialog(storyForm());
     if (act === "edit-story") return showDialog(storyForm((C.stories || []).filter(function (x) { return x.id === id; })[0]));
     if (act === "toggle-story") {
@@ -334,7 +368,7 @@
 
     if (kind === "mission") {
       var row = { id: v("mi-id"), number: v("mi-num"), title: v("mi-title"), status: v("mi-status"), difficulty: v("mi-diff"), summary: v("mi-sum"), categories: list(v("mi-cat")), skills: list(v("mi-skills")),
-        objectives: lines($("#mi-obj", form).value), deliverables: lines($("#mi-del", form).value), instructions: lines($("#mi-ins", form).value), opens: v("mi-opens") || null, deadline: v("mi-dead") || null, review_by: v("mi-rev") || null };
+        objectives: lines($("#mi-obj", form).value), deliverables: lines($("#mi-del", form).value), instructions: lines($("#mi-ins", form).value), opens: v("mi-opens") || null, deadline: v("mi-dead") || null, review_by: v("mi-rev") || null, sponsor_name: v("mi-sname") || null, sponsor_url: v("mi-surl") || null };
       if (!row.summary) return fail({ message: "Please add a short summary." });
       busy(true);
       var q = form.getAttribute("data-new") === "true" ? sb.from("missions").insert(row) : sb.from("missions").update(row).eq("id", row.id);
@@ -361,6 +395,17 @@
         if (r.error) throw r.error;
         return item.featured ? sb.from("archive_items").update({ featured: false }).neq("number", num) : null;
       }).then(function () { done("Archive item saved."); }).catch(fail); return;
+    }
+
+    if (kind === "sponsor") {
+      var spid = form.getAttribute("data-id"), logoFile = $("#sp-logo", form).files[0], perm = c("sp-perm"), pubd = c("sp-pub");
+      if (pubd && !perm) return fail({ message: "To show a sponsor publicly, please confirm they agreed to be listed." });
+      var srow = { name: v("sp-name"), website: v("sp-web") || null, note: v("sp-note") || null, permission_confirmed: perm, published: pubd, sort_order: parseInt(v("sp-order"), 10) || 0, logo: form.getAttribute("data-old-logo") || null };
+      busy(true);
+      var sp1 = Promise.resolve();
+      if (logoFile) { sp1 = resizeToBlob(logoFile, 400, 0.92, "image/png").then(function (b) { return upload("sponsors/" + uuid().slice(0, 12) + ".png", b); }).then(function (u) { var old = srow.logo; srow.logo = u; removeFiles([old]); }); }
+      sp1.then(function () { return spid ? sb.from("sponsors").update(srow).eq("id", spid) : sb.from("sponsors").insert(srow); }).then(function (r) { if (r.error) throw r.error; done("Sponsor saved."); }).catch(fail);
+      return;
     }
 
     if (kind === "story") {
