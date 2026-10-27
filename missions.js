@@ -112,6 +112,9 @@
     if (m.deadline) dates.push("Deadline " + fmtDate(m.deadline) + (acceptsSubmissions(m) ? " (" + daysLeft(m.deadline) + ")" : ""));
     if (m.reviewBy) dates.push("Results by " + fmtDate(m.reviewBy));
     var actions = '<button type="button" class="btn ' + (big ? "btn-dark" : "btn-line") + ' btn-sm" data-brief="' + esc(m.id) + '">Read the full brief</button>';
+    if (!m.sponsor_name && (m.status === "Open" || m.status === "In Progress")) {
+      actions += '<a class="btn btn-line btn-sm" href="sponsors.html?mission=' + encodeURIComponent(m.id) + "&title=" + encodeURIComponent(missionLabel(m.id)) + '#enquire">Sponsor this mission</a>';
+    }
     if (acceptsSubmissions(m)) {
       actions += '<button type="button" class="btn btn-line btn-sm" data-desk-tab="interest" data-mission="' + esc(m.id) + '">Register interest</button>' +
                  '<button type="button" class="btn btn-gold btn-sm" data-desk-tab="submit" data-mission="' + esc(m.id) + '">Submit your project</button>';

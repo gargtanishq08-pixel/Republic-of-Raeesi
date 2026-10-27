@@ -6,6 +6,9 @@
   <title>Sponsor the Republic — Republic of Raeesi</title>
   <meta name="description" content="Sponsor a Royal Mission or its prize, sponsor a community event, or tell young builders about your programme, internship or intake.">
   <meta name="theme-color" content="#3a0914">
+  <meta property="og:title" content="Sponsor the Republic of Raeesi">
+  <meta property="og:description" content="Sponsor a Royal Mission or prize, sponsor a build marathon or event, or tell young builders about your opportunity.">
+  <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,8 +31,8 @@
 
     <section class="m-section" aria-labelledby="ways-title">
       <div class="wrap">
-        <h2 id="ways-title" class="h2-dark">Three ways to get involved.</h2>
-        <div class="perk-grid">
+        <h2 id="ways-title" class="h2-dark">Ways to get involved.</h2>
+        <div class="perk-grid four">
           <article class="perk">
             <h3>Sponsor a Royal Mission or prize</h3>
             <p>Put your name on a monthly challenge, or fund its prize. Sponsors are named on the mission page. You don’t get a say in the scoring or the results.</p>
@@ -41,6 +44,10 @@
           <article class="perk">
             <h3>Tell our builders about an opportunity</h3>
             <p>Programmes, colleges, accelerators and companies can tell our builders about an intake, scholarship, internship or job. We share it with the community and members choose whether to apply. We never hand over member details.</p>
+          </article>
+          <article class="perk">
+            <h3>Back the builders</h3>
+            <p>Interested in backing young founders alongside the Supreme Leader? That isn’t open yet. Nothing is being offered or promised, and proper advice will be taken first. Register your interest and you’ll hear if that changes.</p>
           </article>
         </div>
       </div>
@@ -71,24 +78,7 @@
       <div class="wrap narrow">
         <h2 id="enq-title" class="h2-dark">Get in touch.</h2>
         <p class="lede-dark">Tell us what you have in mind. Sending this agrees nothing. The Supreme Leader replies personally.</p>
-        <div id="form-root">
-          <form id="enq" novalidate class="shell">
-            <div class="row-2">
-              <div class="field"><label for="f-org">Organisation <span class="req" aria-hidden="true">*</span></label><input type="text" id="f-org" autocomplete="organization" required maxlength="100"><p class="field-error" id="e-org" role="alert"></p></div>
-              <div class="field"><label for="f-contact">Your name <span class="req" aria-hidden="true">*</span></label><input type="text" id="f-contact" autocomplete="name" required maxlength="100"><p class="field-error" id="e-contact" role="alert"></p></div>
-              <div class="field"><label for="f-email">Email <span class="req" aria-hidden="true">*</span></label><input type="email" id="f-email" autocomplete="email" required maxlength="200"><p class="field-error" id="e-email" role="alert"></p></div>
-              <div class="field"><label for="f-web">Website (optional)</label><input type="url" id="f-web" placeholder="https://" maxlength="300"><p class="field-error" id="e-web" role="alert"></p></div>
-            </div>
-            <div class="field"><label for="f-kind">I’d like to <span class="req" aria-hidden="true">*</span></label>
-              <select id="f-kind" required><option value="">Choose one</option><option>Sponsor a Royal Mission or prize</option><option>Sponsor an event</option><option>Tell your builders about an opportunity</option><option>Something else</option></select><p class="field-error" id="e-kind" role="alert"></p></div>
-            <div class="field"><label for="f-msg">Tell us more (optional)</label><textarea id="f-msg" maxlength="1500"></textarea></div>
-            <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" id="f-hp" tabindex="-1" autocomplete="off"></label></div>
-            <div class="check"><input type="checkbox" id="f-consent"><label for="f-consent">I understand that sending this agrees nothing, and that the Republic does not share members’ details. I’m happy for you to use my details to reply to me. <span class="req" aria-hidden="true">*</span></label></div>
-            <p class="field-error" id="e-consent" role="alert"></p>
-            <p class="field-error" id="e-form" role="alert"></p>
-            <div class="mc-actions"><button type="submit" class="btn btn-dark" id="f-send">Send enquiry</button></div>
-          </form>
-        </div>
+        <div id="sponsor-form-root"></div>
       </div>
     </section>
 

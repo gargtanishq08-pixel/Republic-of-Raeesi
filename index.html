@@ -73,6 +73,13 @@
       </div>
     </section>
 
+    <div class="sponsor-strip" role="note">
+      <div class="wrap sponsor-strip-in">
+        <p><strong>Want to back the builders?</strong> Sponsor a Royal Mission, a prize or an event.</p>
+        <a class="btn btn-gold btn-sm" href="#sponsor">Sponsor the Republic</a>
+      </div>
+    </div>
+
     <div class="ministry" role="note">
       <div class="wrap ministry-in">
         <svg class="seal" aria-hidden="true"><use href="#seal"/></svg>
@@ -136,6 +143,26 @@
             <span><strong>The Builders’ Network</strong><br>Pitch ideas, find co-founders and collaborators, or get free publicity if you choose. Free to join; members are approved personally.</span>
           </a>
         </div>
+      </div>
+    </section>
+
+    <!-- ======================= SPONSOR ======================= -->
+    <section class="sponsor-sec" id="sponsor" aria-labelledby="sponsor-title">
+      <div class="wrap">
+        <h2 id="sponsor-title" class="h2-light">Sponsor the Republic.</h2>
+        <p class="lede-light">Back a Royal Mission or its prize, sponsor a build marathon or an event, or put an opportunity in front of young builders. It takes a minute to get in touch.</p>
+        <div class="perk-grid four">
+          <article class="perk"><h3>A Royal Mission or prize</h3><p>Put your name on a monthly challenge, or fund its prize. You don’t get a say in the scoring or the results.</p></article>
+          <article class="perk"><h3>An event</h3><p>A build marathon, workshop, dinner or meetup for the community.</p></article>
+          <article class="perk"><h3>An opportunity for builders</h3><p>Tell our builders about an intake, scholarship, internship or job. Members choose whether to apply; we never share member details.</p></article>
+          <article class="perk"><h3>Back the builders</h3><p>Investing alongside the Supreme Leader isn’t open yet. Nothing is offered or promised. Register your interest to hear if that changes.</p></article>
+        </div>
+        <div id="our-sponsors" hidden>
+          <h3 class="h2-light" style="font-size:1.6rem;margin-top:2.5rem">Our sponsors</h3>
+          <div class="sp-grid" id="sp-grid"></div>
+        </div>
+        <div class="sponsor-form-wrap"><div id="sponsor-form-root"></div></div>
+        <p style="text-align:center;margin-top:1.5rem"><a href="sponsors.html" style="color:var(--gold-light)">See the full sponsors page</a></p>
       </div>
     </section>
 
@@ -381,7 +408,10 @@
   <div id="site-footer"></div>
 
   <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
   <script src="shared.js"></script>
   <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="sponsors.js"></script>
 </body>
 </html>
