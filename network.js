@@ -559,7 +559,7 @@
     });
     return html + '<div class="panel"><h3>Your ' + esc(APP.currency) + '</h3><p><strong>' + S.wallet.balance + "</strong> to spend &middot; <strong>" + S.wallet.earned + "</strong> earned &middot; level <strong>" + esc(lv) + "</strong>" + (next ? " (" + (next.min - S.wallet.earned) + " more earned to reach " + esc(next.name) + ")" : "") + "</p>" +
       ((perk.perks || []).length || perk.ad_discount_pct ? "<p><strong>Your level’s perks:</strong> " + esc((perk.perks || []).join("; ")) + (perk.ad_discount_pct ? ((perk.perks || []).length ? "; " : "") + perk.ad_discount_pct + "% off ad contributions" : "") + "</p>" : '<p class="file-meta">' + esc(APP.currency) + " are earned through real work: Royal Missions, helping builders and taking part. They have no cash value and can’t be transferred.</p>") +
-      (S.ledger.length ? "<details><summary>Recent activity</summary>" + S.ledger.map(function (e) { return '<p class="file-meta">' + esc(new Date(e.created_at).toLocaleDateString("en-IN")) + " &middot; " + (e.amount > 0 ? "+" : "") + e.amount + " &middot; " + esc(e.kind) + (e.reason ? " &middot; " + esc(e.reason) : "") + "</p>"; }).join("") + "</details>" : "") + "</div>";
+      '<p><a href="wallet.html">Open your wallet and the Crown Shop</a></p>' + (S.ledger.length ? "<details><summary>Recent activity</summary>" + S.ledger.map(function (e) { return '<p class="file-meta">' + esc(new Date(e.created_at).toLocaleDateString("en-IN")) + " &middot; " + (e.amount > 0 ? "+" : "") + e.amount + " &middot; " + esc(e.kind) + (e.reason ? " &middot; " + esc(e.reason) : "") + "</p>"; }).join("") + "</details>" : "") + "</div>";
   }
 
   function profileHtml() {

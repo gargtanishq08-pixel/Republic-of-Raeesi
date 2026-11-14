@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Royal Wallet — Republic of Raeesi</title>
+  <meta name="description" content="Your Crowns: earn them through real work, and spend them on ads and offers in the Republic.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="decree-line">The Republic’s own currency</p>
+        <h1 class="page-title">The Royal Wallet.</h1>
+        <p class="page-lede">Crowns are the Republic’s points. You earn them through real work, and spend them on ads and on offers from the Supreme Leader.</p>
+        <p class="satire-note" role="note"><strong>The rules of the Crown:</strong> Crowns are earned by taking part: Royal Missions, helping other builders and joining in. They have <strong>no cash value, can’t be transferred, and can’t be exchanged for money</strong>. Your level depends only on Crowns you’ve <em>earned</em>, never on what you’ve spent.</p>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="wallet-title">
+      <div class="wrap">
+        <h2 id="wallet-title" class="sr-only">Your wallet</h2>
+        <div id="wl-status" role="status" aria-live="polite"></div>
+        <div id="wl-app"><p class="file-meta">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="m-section alt" aria-labelledby="earn-title">
+      <div class="wrap narrow">
+        <h2 id="earn-title" class="h2-dark">How to earn Crowns.</h2>
+        <ul class="rule-list dark">
+          <li><strong>Royal Missions:</strong> strong, honest work on a mission earns Crowns.</li>
+          <li><strong>Helping other builders:</strong> reviewing a pitch, sharing a skill, making an introduction.</li>
+          <li><strong>Taking part:</strong> showing up for the community and for events.</li>
+        </ul>
+        <p>The Supreme Leader awards Crowns personally and writes the reason, so you can always see why. Crowns can’t be bought, at least for now.</p>
+        <p><a class="btn btn-dark" href="missions.html">See the Royal Missions</a> <a class="stage-link" href="adbureau.html">Spend Crowns on ads</a></p>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app-settings.js"></script>
+  <script src="missions-data.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="wallet.js"></script>
+</body>
+</html>
