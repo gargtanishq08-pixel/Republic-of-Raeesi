@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Alumni Body — Republic of Raeesi</title>
+  <meta name="description" content="Builders who learned, built and grew through the Republic of Raeesi, and who now help the next generation.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="decree-line">Those who came, built, and stayed useful</p>
+        <h1 class="page-title">The Alumni Body.</h1>
+        <p class="page-lede">Builders who learned, built and grew through the Republic, and who now help the next generation of founders find their feet.</p>
+        <p class="satire-note" role="note"><strong>How listing works:</strong> alumni are recognised personally by the Supreme Leader. Someone appears here only if they have agreed to be listed. Being an alumnus is a recognition of taking part, not a claim about the success of anyone’s venture.</p>
+      </div>
+    </section>
+
+    <section class="archive-body" aria-label="Alumni">
+      <div class="wrap">
+        <div class="filters" role="group" aria-label="Filter by cohort" id="al-filters"></div>
+        <div class="news-grid" id="al-grid" aria-live="polite"><p class="file-meta">Loading the alumni…</p></div>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="path-title">
+      <div class="wrap narrow">
+        <h2 id="path-title" class="h2-dark">How to join the Alumni Body.</h2>
+        <p>There’s no application fee and no shortcut. Alumni are builders who took part for real: they joined the Builders’ Network, completed Royal Missions, helped other members, and reached the upper levels of the Royal Ledger. The Supreme Leader recognises them personally.</p>
+        <p>Alumni are invited to give back: mentoring newer members, judging missions, and sharing what they learned. That is how everyone in the Republic grows.</p>
+        <p><a class="btn btn-dark" href="network.html">Join the Builders’ Network</a> <a class="stage-link" href="missions.html">See the Royal Missions</a></p>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="alumni.js"></script>
+</body>
+</html>

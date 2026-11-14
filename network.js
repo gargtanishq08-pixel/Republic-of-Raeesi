@@ -30,7 +30,13 @@
   ];
   var TABS = [["pitches", "Pitch Hall"], ["builders", "Builders"], ["matches", "Matches"], ["inbox", "Inbox"], ["profile", "My profile"]];
 
+  var APP = window.RAEESI_APP || { currency: "Crowns", currencyOne: "Crown" };
+  function levels() { return ((window.RAEESI_MISSIONS || {}).levels) || [{ name: "Newcomer", min: 0 }, { name: "Apprentice Builder", min: 40 }, { name: "Journeyman Builder", min: 150 }, { name: "Master Builder", min: 350 }]; }
+  function levelFor(p) { var lv = levels()[0].name; levels().forEach(function (l) { if (p >= l.min) lv = l.name; }); return lv; }
+  function cats() { return S.categories && S.categories.length ? S.categories : CATEGORIES; }
+
   var S = {
+    categories: [], wallet: { balance: 0, earned: 0 }, ledger: [], perks: [], winners: [], missionMap: {},
     sb: null, user: null, member: null, profile: null, tab: "pitches",
     pitches: [], profiles: [], interest: [], commentRows: [], saves: {}, blocked: {}, requests: [],
     f: { q: "", cat: "", status: "", mine: false, saved: false },
@@ -160,8 +166,9 @@
 
   function loadAll() {
     var sb = S.sb, uid = S.user && S.user.id;
-    S.errors = []; S.member = null; S.profile = null;
-    var p = Promise.resolve();
+    S.errors = []; S.member = null; S.profile = null; S.wallet = { balance: 0, earned: 0 }; S.ledger = []; S.perks = []; S.winners = [];
+    var p = Promise.resolve().then(function () { return sb.from("pitch_categories").select("name").order("name", { ascending: true }); })
+      .then(function (r) { S.categories = r && !r.error ? (r.data || []).map(function (x) { return x.name; }) : []; });
     if (uid) {
       p = p.then(function () { return sb.from("members").select("*").eq("id", uid).maybeSingle(); }).then(function (r) { S.member = r.data || null; })
         .then(function () { return sb.from("profiles").select("*").eq("id", uid).maybeSingle(); }).then(function (r) { S.profile = r.data || null; });
@@ -179,7 +186,13 @@
         q = q.then(function () { return sb.from("pitch_interest").select("pitch_id,user_id"); }).then(function (r) { S.interest = result(r); })
           .then(function () { return sb.from("pitch_comments").select("pitch_id,author").limit(2000); }).then(function (r) { S.commentRows = result(r); })
           .then(function () { return sb.from("pitch_saves").select("pitch_id").eq("user_id", uid); }).then(function (r) { result(r).forEach(function (x) { S.saves[x.pitch_id] = true; }); })
-          .then(function () { return sb.from("collab_requests").select("*").order("created_at", { ascending: false }); }).then(function (r) { S.requests = result(r); });
+          .then(function () { return sb.from("collab_requests").select("*").order("created_at", { ascending: false }); }).then(function (r) { S.requests = result(r); })
+          .then(function () { return sb.rpc("my_wallet"); }).then(function (r) { var row = Array.isArray(r.data) ? r.data[0] : r.data; if (row) S.wallet = { balance: row.balance || 0, earned: row.earned || 0 }; })
+          .then(function () { return sb.from("credit_entries").select("*").order("created_at", { ascending: false }).limit(8); }).then(function (r) { S.ledger = (r && !r.error && r.data) || []; })
+          .then(function () { return sb.from("level_perks").select("*"); }).then(function (r) { S.perks = (r && !r.error && r.data) || []; })
+          .then(function () { return sb.from("mission_winners").select("*"); }).then(function (r) { S.winners = (r && !r.error && r.data) || []; })
+          .then(function () { return S.winners.length ? sb.from("missions").select("id,number,title,gift_options,prize_note") : { data: [] }; })
+          .then(function (r) { S.missionMap = {}; ((r && r.data) || []).forEach(function (m) { S.missionMap[m.id] = m; }); });
       }
       return q;
     });
@@ -257,7 +270,7 @@
     var f = S.f;
     return '<div class="toolbar">' +
       '<label class="sr-only" for="pf-q">Search pitches</label><input type="search" id="pf-q" data-filter="q" placeholder="Search pitches, skills, builders…" value="' + esc(f.q) + '">' +
-      '<label class="sr-only" for="pf-cat">Category</label><select id="pf-cat" data-filter="cat"><option value="">All categories</option>' + CATEGORIES.map(function (c) { return "<option" + (f.cat === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select>" +
+      '<label class="sr-only" for="pf-cat">Category</label><select id="pf-cat" data-filter="cat"><option value="">All categories</option>' + cats().map(function (c) { return "<option" + (f.cat === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select>" +
       '<label class="sr-only" for="pf-status">Stage</label><select id="pf-status" data-filter="status"><option value="">Any stage</option>' + STATUSES.map(function (c) { return "<option" + (f.status === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select>" +
       '</div><div class="toolbar">' +
       (S.user && S.member ? '<label class="inline-check"><input type="checkbox" data-filter="mine"' + (f.mine ? " checked" : "") + '> My pitches</label>' : "") +
@@ -331,7 +344,8 @@
       '<div class="field"><label for="pt-title">Title *</label><input type="text" id="pt-title" required minlength="4" maxlength="100" value="' + esc(p.title) + '"></div>' +
       '<div class="field"><label for="pt-desc">Describe it *</label><span class="hint">What is it, what problem does it solve, and who is it for? (20 to 1500 characters)</span><textarea id="pt-desc" required minlength="20" maxlength="1500" style="min-height:8rem">' + esc(p.description) + "</textarea></div>" +
       '<div class="field"><label for="pt-video">Pitch video link (optional)</label><span class="hint">Paste a YouTube, Vimeo, Loom or Google Drive link. It plays right here on the site. For Drive, set sharing to “Anyone with the link”.</span><input type="url" id="pt-video" maxlength="300" placeholder="https://" value="' + esc(p.video_url || "") + '"></div>' +
-      '<div class="row-2"><div class="field"><label for="pt-cat">Category *</label><select id="pt-cat">' + CATEGORIES.map(function (c) { return "<option" + (p.category === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select></div>" +
+      '<div class="row-2"><div class="field"><label for="pt-cat">Business type *</label><select id="pt-cat">' + cats().map(function (c) { return "<option" + (p.category === c ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("") + '<option value="__custom">Something else (type your own)…</option></select>' +
+        '<div id="pt-cat-new-wrap" hidden><input type="text" id="pt-cat-new" maxlength="40" placeholder="e.g. Agri-tech, Fitness, Gaming" aria-label="Your business type"><span class="hint">It’s added to the list for everyone to use.</span></div></div>' +
       '<div class="field"><label for="pt-status">Where is it now? *</label><select id="pt-status">' + STATUSES.map(function (c) { return "<option" + (p.status === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select></div></div>" +
       '<fieldset class="field"><legend class="label">Roles you’re looking for</legend><div class="checks">' + ROLES.map(function (r) { return '<label class="inline-check"><input type="checkbox" name="pt-role" value="' + esc(r) + '"' + ((p.roles_needed || []).indexOf(r) > -1 ? " checked" : "") + "> " + esc(r) + "</label>"; }).join("") + "</div></fieldset>" +
       '<div class="field"><label for="pt-skills">Skills needed</label><span class="hint">Separate with commas, like “React, copywriting, Figma”.</span><input type="text" id="pt-skills" maxlength="300" value="' + esc((p.skills_needed || []).join(", ")) + '"></div>' +
@@ -532,6 +546,22 @@
   /* ======================================================================
      MY PROFILE
      ====================================================================== */
+  function walletBlock() {
+    if (!approved()) return "";
+    var lv = levelFor(S.wallet.earned), perk = S.perks.filter(function (x) { return x.level === lv; })[0] || { perks: [], ad_discount_pct: 0 };
+    var next = levels().filter(function (l) { return l.min > S.wallet.earned; })[0], html = "";
+    S.winners.forEach(function (w) {
+      var m = S.missionMap[w.mission_id] || { title: w.mission_id, gift_options: [] };
+      html += '<div class="panel"><h3>You won! ' + (w.place === 1 ? "First place" : "Place " + w.place) + " in Mission " + esc(m.number || "") + ": " + esc(m.title) + "</h3>" +
+        (w.chosen_gift ? "<p>You chose <strong>" + esc(w.chosen_gift) + "</strong>. It will be sent to <strong>" + esc(w.gift_email) + "</strong>." + (w.fulfilled ? " <strong>Sent.</strong>" : " The Supreme Leader will arrange it.") + "</p>"
+          : '<form data-form="gift" data-id="' + esc(w.id) + '"><p>Choose your gift:</p><div class="field"><label for="gf-g-' + esc(w.id) + '">Gift</label><select id="gf-g-' + esc(w.id) + '">' + (m.gift_options || []).map(function (g) { return "<option>" + esc(g) + "</option>"; }).join("") + "</select></div>" +
+            '<div class="field"><label for="gf-e-' + esc(w.id) + '">Email to send it to</label><input type="email" id="gf-e-' + esc(w.id) + '" required maxlength="200" value="' + esc((S.user && S.user.email) || "") + '"></div><p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Confirm my choice</button><p class="file-meta">You can choose once. The Supreme Leader buys it for you. Gifts are subject to availability.</p></form>') + "</div>";
+    });
+    return html + '<div class="panel"><h3>Your ' + esc(APP.currency) + '</h3><p><strong>' + S.wallet.balance + "</strong> to spend &middot; <strong>" + S.wallet.earned + "</strong> earned &middot; level <strong>" + esc(lv) + "</strong>" + (next ? " (" + (next.min - S.wallet.earned) + " more earned to reach " + esc(next.name) + ")" : "") + "</p>" +
+      ((perk.perks || []).length || perk.ad_discount_pct ? "<p><strong>Your level’s perks:</strong> " + esc((perk.perks || []).join("; ")) + (perk.ad_discount_pct ? ((perk.perks || []).length ? "; " : "") + perk.ad_discount_pct + "% off ad contributions" : "") + "</p>" : '<p class="file-meta">' + esc(APP.currency) + " are earned through real work: Royal Missions, helping builders and taking part. They have no cash value and can’t be transferred.</p>") +
+      (S.ledger.length ? "<details><summary>Recent activity</summary>" + S.ledger.map(function (e) { return '<p class="file-meta">' + esc(new Date(e.created_at).toLocaleDateString("en-IN")) + " &middot; " + (e.amount > 0 ? "+" : "") + e.amount + " &middot; " + esc(e.kind) + (e.reason ? " &middot; " + esc(e.reason) : "") + "</p>"; }).join("") + "</details>" : "") + "</div>";
+  }
+
   function profileHtml() {
     if (!S.user) return '<div class="notice"><p>Please sign in (above) to create your profile.</p></div>';
     var m = S.member || { age_band: "", guardian_ok: false };
@@ -542,7 +572,7 @@
     var status = "";
     if (live && !live.approved) status = '<div class="notice"><p><strong>Submitted.</strong> Your profile goes live after the Supreme Leader’s review, usually within a day. Until then only you can see it.</p></div>';
     else if (live && live.pending) status = '<div class="notice"><p><strong>Edits submitted.</strong> Your approved profile stays live while your edits wait for review, usually within a day.</p></div>';
-    return status + '<h3>' + (live ? "Your profile" : "Create your profile") + "</h3>" +
+    return walletBlock() + status + '<h3>' + (live ? "Your profile" : "Create your profile") + "</h3>" +
       '<form data-form="profile">' +
       '<div class="avatar-field"><div id="pr-avatar-prev">' + avatarHtml(p.avatar_path, p.display_name || "You", "lg") + '</div>' +
         '<div><label for="pr-avatar">Profile picture (optional)</label><span class="hint">A clear face or logo. We crop it square and shrink it. It shows once your profile is approved.</span>' +
@@ -731,6 +761,8 @@
       var pid = form.getAttribute("data-id");
       var videoUrl = val("pt-video");
       if (videoUrl && !videoEmbed(videoUrl)) { var ve = $("#dlg-error"); if (ve) ve.textContent = "That video link isn’t supported. Use a YouTube, Vimeo, Loom or Google Drive link."; return; }
+      var wantCustom = val("pt-cat") === "__custom";
+      if (wantCustom && val("pt-cat-new").length < 2) { var ce = $("#dlg-error"); if (ce) ce.textContent = "Please type your business type (at least 2 letters)."; return; }
       var row = {
         title: val("pt-title"), description: val("pt-desc"), category: val("pt-cat"), status: val("pt-status"),
         roles_needed: $$("input[name=pt-role]:checked", form).map(function (x) { return x.value; }),
@@ -738,8 +770,11 @@
       };
       var wasOk = approved();
       busy(true);
-      var q = pid ? sb.from("pitches").update(row).eq("id", pid).select("id,approved,pending") : sb.from("pitches").insert(Object.assign({ author: uid }, row)).select("id,approved,pending");
-      q.then(function (r) {
+      var catStep = wantCustom ? sb.rpc("add_pitch_category", { p_name: val("pt-cat-new") }).then(function (r) { if (r.error) throw r.error; return r.data; }) : Promise.resolve(row.category);
+      catStep.then(function (cat) {
+        row.category = cat;
+        return pid ? sb.from("pitches").update(row).eq("id", pid).select("id,approved,pending") : sb.from("pitches").insert(Object.assign({ author: uid }, row)).select("id,approved,pending");
+      }).then(function (r) {
         busy(false); if (r.error) return fail(r.error);
         var d = r.data && r.data[0], newId = pid || (d && d.id) || "";
         closeDialog();
@@ -748,7 +783,14 @@
           : d && !d.approved ? "Saved. It’s still waiting for review." : "Pitch updated.");
         if (wasOk) notifyOwner({ action: "network_review", kind: "pitch", id: newId, title: row.title });
         refresh();
-      }); return;
+      }).catch(function (err) { busy(false); fail(err); }); return;
+    }
+
+    if (kind === "gift") {
+      var wid = form.getAttribute("data-id"), gift = $("#gf-g-" + wid).value, mail = $("#gf-e-" + wid).value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { var ge = $("#dlg-error"); if (ge) ge.textContent = "Please enter a valid email address."; return; }
+      busy(true);
+      sb.from("mission_winners").update({ chosen_gift: gift, gift_email: mail }).eq("id", wid).then(function (r) { busy(false); if (r.error) return fail(r.error); say("Your choice is saved. The Supreme Leader will arrange your gift."); refresh(); }); return;
     }
 
     if (kind === "comment") {
@@ -788,6 +830,7 @@
     var t = e.target, k;
     if ((k = t.getAttribute && t.getAttribute("data-filter"))) { S.f[k] = t.type === "checkbox" ? t.checked : t.value; renderPitchList(); }
     else if ((k = t.getAttribute && t.getAttribute("data-bfilter"))) { S.bf[k] = t.type === "checkbox" ? t.checked : t.value; renderBuilderList(); }
+    else if (t.id === "pt-cat") { var w = $("#pt-cat-new-wrap"); if (w) w.hidden = t.value !== "__custom"; }
     else if (t.id === "pr-age") {
       var minor = MINOR.indexOf(t.value) > -1;
       var g = $("#pr-guardian"); if (g) g.hidden = !minor;

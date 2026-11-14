@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Royal Ad Bureau — Republic of Raeesi</title>
+  <meta name="description" content="Early-stage builders pitch their ads to the Republic. Shared placements, split by contribution, with Crowns earned through real work.">
+  <meta name="theme-color" content="#3a0914">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%233a0914'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23e2c46d' stroke-width='3'/%3E%3Cpolygon fill='%23e2c46d' points='50,24 56,42 76,42 60,53 66,72 50,60 34,72 40,53 24,42 44,42'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="top">
+  <a class="skip" href="#main">Skip to the content</a>
+  <div id="site-header"></div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="decree-line">For builders who can’t afford an agency</p>
+        <h1 class="page-title">The Royal Ad Bureau.</h1>
+        <p class="page-lede">Pitch your ad to the Republic. When several young businesses want the same kind of space, we share it between them, so nobody has to pay for the whole thing. That could be a billboard or banner at a prime location, a metro or transit ad, a gym, a café or mall, a college campus, a residential society, a school or coaching centre, an event, or somewhere you suggest.</p>
+        <p class="hero-fine">Open to approved members aged 18 and over. Nothing is guaranteed: we choose what to take forward, and nothing is binding until it’s agreed in writing.</p>
+      </div>
+    </section>
+
+    <section class="m-section" aria-labelledby="how-title">
+      <div class="wrap">
+        <h2 id="how-title" class="h2-dark">How collaborative ads work.</h2>
+        <ol class="cycle">
+          <li><strong>Pitch.</strong> Submit your ad idea, where you’d like it seen (tick any of the placement types, and tell us exact spots you have in mind), and what you can pay (even nothing).</li>
+          <li><strong>Review.</strong> The Supreme Leader reads it and approves it, asks for changes, or declines.</li>
+          <li><strong>Join a campaign.</strong> When we line up a shared placement (say, banners across a few gyms, a metro line, or a prime-location hoarding), approved members can join with an approved pitch.</li>
+          <li><strong>Split by contribution.</strong> Cash and Crowns together set your share. A bigger contribution means a bigger part of the space.</li>
+          <li><strong>Conflicts, handled personally.</strong> If two businesses in the same field both join, we ask you both whether you’re happy to share. If you both stay, the larger contribution leads. If it’s a tie, we run a tiebreaker.</li>
+          <li><strong>Agree in writing.</strong> Payments and terms are settled directly and in writing. Nothing is charged through this site.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="m-section alt" aria-labelledby="crowns-title">
+      <div class="wrap narrow">
+        <h2 id="crowns-title" class="h2-dark">About Crowns.</h2>
+        <p>Crowns are the Republic’s points. You earn them through real work: Royal Missions, helping other builders, and taking part. They have <strong>no cash value, can’t be transferred, and can’t be exchanged for money</strong>. In a campaign, the Supreme Leader sets what a Crown is worth toward your share. Levels depend on Crowns you’ve <em>earned</em>, so a level always reflects real work.</p>
+        <h3>Ground rules</h3>
+        <ul class="rule-list dark">
+          <li>Your ad must be truthful and able to be backed up. No made-up claims, guaranteed results or fake testimonials.</li>
+          <li>Education and coaching ads have especially strict rules about claims. Don’t promise results.</li>
+          <li>Anything shown to children needs extra care, and we may decline it.</li>
+          <li>We may decline any ad, and we don’t promise any placement or result.</li>
+          <li>Joining a campaign is a pledge, not a contract, until it’s confirmed in writing.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="m-section" id="bureau" aria-labelledby="app-title">
+      <div class="wrap">
+        <h2 id="app-title" class="h2-dark">Your bureau.</h2>
+        <div id="ab-status" role="status" aria-live="polite"></div>
+        <div id="ab-app"><p class="file-meta">Loading…</p></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app-settings.js"></script>
+  <script src="missions-data.js"></script>
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="adbureau.js"></script>
+</body>
+</html>

@@ -19,6 +19,8 @@
   function slugify(t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60); }
 
   var TABS = [["review", "Review"], ["members", "Members"], ["pitches", "Pitches"], ["missions", "Missions"], ["archive", "Archive"], ["stories", "Stories"], ["sponsors", "Sponsors"]];
+  var EXT = { tabs: [], click: [], submit: [] };      // extra sections plug in here (admin-ext.js)
+  function allTabs() { return TABS.concat(EXT.tabs.map(function (t) { return [t[0], t[1]]; })); }
   var S = { sb: null, user: null, admin: false, tab: "review", checked: false, memberQ: "" };
   var CATEGORIES = ["Official Portraits", "State Symbols", "Military Ceremonies", "State Banquets", "Foreign Diplomacy", "Supreme Leader's Decrees", "National Achievements", "Royal Palace Life", "Royal Holidays", "The Supreme Leader's Personal Opinions", "Classified Affairs"];
 
@@ -70,7 +72,7 @@
     }
     if (!S.admin) { app.innerHTML = '<div class="notice warn"><p>This area is only for the Supreme Leader. You’re signed in as <strong>' + esc(S.user.email || "") + '</strong>, which isn’t the admin email. <button type="button" class="linkish" data-act="signout">Sign out</button></p></div>'; return; }
     app.innerHTML = '<div class="authbar signed"><span class="who">Signed in as <strong>' + esc(S.user.email) + '</strong></span> <button type="button" class="linkish" data-act="signout">Sign out</button></div>' +
-      '<div class="tabs" role="tablist" aria-label="Admin sections">' + TABS.map(function (t) { return '<button type="button" role="tab" class="tab" data-act="tab" data-tab="' + t[0] + '" aria-selected="' + (S.tab === t[0]) + '">' + t[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="tabs" role="tablist" aria-label="Admin sections">' + allTabs().map(function (t) { return '<button type="button" role="tab" class="tab" data-act="tab" data-tab="' + t[0] + '" aria-selected="' + (S.tab === t[0]) + '">' + t[1] + "</button>"; }).join("") + "</div>" +
       '<div class="tab-panel" id="adm-panel"><p class="file-meta">Loading…</p></div>';
     loadTab();
   }
@@ -80,6 +82,8 @@
     var host = $("#adm-panel"); if (!host) return;
     host.innerHTML = '<p class="file-meta">Loading…</p>';
     var fn = { review: tabReview, members: tabMembers, pitches: tabPitches, missions: tabMissions, archive: tabArchive, stories: tabStories, sponsors: tabSponsors }[S.tab];
+    if (!fn) { var ex = EXT.tabs.filter(function (t) { return t[0] === S.tab; })[0]; fn = ex && ex[2]; }
+    if (!fn) return;
     fn(host);
   }
   function btn(act, id, label, cls, extra) { return '<button type="button" class="btn ' + (cls || "btn-line") + ' btn-sm" data-act="' + act + '" data-id="' + esc(id) + '"' + (extra || "") + ">" + label + "</button>"; }
@@ -227,6 +231,9 @@
       fld("mi-obj", "Objectives", ta("mi-obj", (m.objectives || []).join("\n"), 5), "One per line.") + fld("mi-del", "What to hand in", ta("mi-del", (m.deliverables || []).join("\n"), 4), "One per line.") + fld("mi-ins", "How to take part", ta("mi-ins", (m.instructions || []).join("\n"), 4), "One per line.") +
       '<div class="row-2">' + fld("mi-opens", "Opens", '<input type="date" id="mi-opens" value="' + esc(m.opens || "") + '">') + fld("mi-dead", "Deadline", '<input type="date" id="mi-dead" value="' + esc(m.deadline || "") + '">') + "</div>" +
       fld("mi-rev", "Results by", '<input type="date" id="mi-rev" value="' + esc(m.review_by || "") + '">') +
+      chkb("mi-comp", "This mission is a <strong>competition</strong> with prizes for the winners", m.is_competition) +
+      fld("mi-prize", "Prize description (competitions)", inp("mi-prize", m.prize_note, "maxlength=\"300\" placeholder=\"e.g. Top 3 builders each choose a gift\""), "Shown on the mission page.") +
+      fld("mi-gifts", "Gift options winners choose from (competitions)", ta("mi-gifts", (m.gift_options || []).join("\n"), 4), "One per line, 3 or 4 options. Only list gifts you will really provide.") +
       '<div class="row-2">' + fld("mi-sname", "Sponsored by (optional)", inp("mi-sname", m.sponsor_name, "maxlength=\"80\""), "Only if they agreed to be named.") + fld("mi-surl", "Sponsor website (optional)", '<input type="url" id="mi-surl" maxlength="300" placeholder="https://" value="' + esc(m.sponsor_url || "") + '">') + "</div>" +
       '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save mission</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
   }
@@ -290,6 +297,14 @@
 
   /* ---------- clicks ---------- */
   function onClick(e) {
+    var el0 = e.target.closest("[data-act],[data-close]");
+    if (el0 && !el0.hasAttribute("data-close")) {
+      var a0 = el0.getAttribute("data-act"), i0 = el0.getAttribute("data-id"), w0 = el0.getAttribute("data-do");
+      if (EXT.click.some(function (h) { return h(a0, el0, i0, w0); })) return;
+    }
+    onClickBase(e);
+  }
+  function onClickBase(e) {
     var el = e.target.closest("[data-act],[data-close]"); if (!el) return;
     if (el.hasAttribute("data-close")) return closeDialog();
     var act = el.getAttribute("data-act"), id = el.getAttribute("data-id"), what = el.getAttribute("data-do"), sb = S.sb;
@@ -352,6 +367,19 @@
 
   /* ---------- form submits ---------- */
   function onSubmit(e) {
+    var form0 = e.target.closest("form[data-form]"); if (!form0) return;
+    var k0 = form0.getAttribute("data-form");
+    var tools = {
+      v: function (id) { var el = form0.querySelector("#" + id); return el ? el.value.trim() : ""; },
+      c: function (id) { var el = form0.querySelector("#" + id); return !!(el && el.checked); },
+      busy: function (b) { [].slice.call(form0.querySelectorAll("button")).forEach(function (x) { x.disabled = b; }); },
+      fail: function (er) { tools.busy(false); var d = document.getElementById("dlg-error"); if (d) d.textContent = (er && (er.message || er.msg)) || "Something went wrong."; },
+      sb: S.sb
+    };
+    if (EXT.submit.some(function (h) { return h(k0, form0, tools); })) { e.preventDefault(); return; }
+    onSubmitBase(e);
+  }
+  function onSubmitBase(e) {
     var form = e.target.closest("form[data-form]"); if (!form) return; e.preventDefault();
     var kind = form.getAttribute("data-form"), sb = S.sb;
     function v(id) { var el = $("#" + id, form); return el ? el.value.trim() : ""; }
@@ -368,7 +396,9 @@
 
     if (kind === "mission") {
       var row = { id: v("mi-id"), number: v("mi-num"), title: v("mi-title"), status: v("mi-status"), difficulty: v("mi-diff"), summary: v("mi-sum"), categories: list(v("mi-cat")), skills: list(v("mi-skills")),
-        objectives: lines($("#mi-obj", form).value), deliverables: lines($("#mi-del", form).value), instructions: lines($("#mi-ins", form).value), opens: v("mi-opens") || null, deadline: v("mi-dead") || null, review_by: v("mi-rev") || null, sponsor_name: v("mi-sname") || null, sponsor_url: v("mi-surl") || null };
+        objectives: lines($("#mi-obj", form).value), deliverables: lines($("#mi-del", form).value), instructions: lines($("#mi-ins", form).value), opens: v("mi-opens") || null, deadline: v("mi-dead") || null, review_by: v("mi-rev") || null, sponsor_name: v("mi-sname") || null, sponsor_url: v("mi-surl") || null,
+        is_competition: c("mi-comp"), prize_note: v("mi-prize") || null, gift_options: lines($("#mi-gifts", form).value) };
+      if (row.is_competition && row.gift_options.length < 2) return fail({ message: "A competition needs at least 2 gift options for winners to choose from." });
       if (!row.summary) return fail({ message: "Please add a short summary." });
       busy(true);
       var q = form.getAttribute("data-new") === "true" ? sb.from("missions").insert(row) : sb.from("missions").update(row).eq("id", row.id);
@@ -427,6 +457,10 @@
   }
 
   function onInput(e) { var t = e.target; if (t.getAttribute && t.getAttribute("data-search") === "member") { S.memberQ = t.value; paintMembers(); var el = $("#mem-q"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } } }
+
+  window.RaeesiAdmin = { S: S, esc: esc, say: say, errText: errText, fmt: fmt, uuid: uuid, lines: lines, list: list, btn: btn, fld: fld, inp: inp, ta: ta, chkb: chkb,
+    showDialog: showDialog, closeDialog: closeDialog, done: done, loadTab: loadTab, resizeToBlob: resizeToBlob, upload: upload, removeFiles: removeFiles,
+    addTab: function (key, label, fn) { EXT.tabs.push([key, label, fn]); }, onClick: function (fn) { EXT.click.push(fn); }, onSubmit: function (fn) { EXT.submit.push(fn); } };
 
   start();
 })();

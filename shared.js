@@ -19,6 +19,10 @@
   var MORE = [
     { t: "The Four Stages",    href: h("stages") },
     { t: "The Royal Treasury", href: h("treasury") },
+    { t: "Funding and schemes", href: "funding.html", page: "funding.html" },
+    { t: "Ad Bureau",         href: "adbureau.html", page: "adbureau.html" },
+    { t: "Alumni Body",       href: "alumni.html", page: "alumni.html" },
+    { t: "Sing the Anthem",   href: "anthem.html", page: "anthem.html" },
     { t: "Royal Archives",     href: "archive.html", page: "archive.html" },
     { t: "Sponsor the Republic", href: sponsorHref, page: "sponsors.html", cls: "more-sponsor" },
     { t: "Privacy",            href: h("trust") }

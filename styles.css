@@ -640,3 +640,41 @@ a.sp-card:hover { border-color: var(--crimson); }
 .sponsor-tab button { background: rgba(36,5,16,.12); border: 0; border-left: 1px solid var(--gold-dark); color: var(--burgundy-900); font-size: 1.4rem; width: 2.6rem; cursor: pointer; }
 @media (prefers-reduced-motion: no-preference) { .sponsor-tab { animation: tabin .6s cubic-bezier(.2,.8,.2,1); } }
 @keyframes tabin { from { opacity: 0; transform: translateY(1.5rem); } to { opacity: 1; transform: none; } }
+
+/* ---------- Funding feed ---------- */
+.feed-list { list-style: none; margin: 1.25rem 0 .75rem; padding: 0; }
+.feed-list li { padding: .85rem 0; border-bottom: 1px solid var(--parchment-deep); display: flex; flex-direction: column; gap: .15rem; }
+.feed-list a { font-weight: 600; color: var(--crimson); overflow-wrap: anywhere; }
+
+/* ---------- Anthem sing-along ---------- */
+.anthem { max-width: 920px; margin: 0 auto; }
+.anthem-stage { position: relative; background: #000; border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(36,5,16,.35); }
+.anthem-stage[hidden] { display: none; }
+.anthem-stage video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.karaoke-overlay { display: none; position: absolute; left: 0; right: 0; bottom: 3.5rem; padding: 1rem 1.25rem; text-align: center; pointer-events: none; background: linear-gradient(transparent, rgba(0,0,0,.72)); }
+.karaoke-overlay .k-now { margin: 0; font-family: var(--font-display); font-weight: 900; color: var(--gold-light); font-size: clamp(1.4rem, 3.2vw, 2.6rem); text-shadow: 0 2px 8px #000; }
+.karaoke-overlay .k-next { margin: .3rem 0 0; color: rgba(248,241,224,.75); font-size: clamp(1rem, 1.8vw, 1.4rem); }
+.anthem-stage:fullscreen { display: flex; align-items: center; justify-content: center; border: 0; }
+.anthem-stage:fullscreen video { height: 100%; aspect-ratio: auto; object-fit: contain; }
+.anthem-stage:fullscreen .karaoke-overlay { display: block; }
+.anthem-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: 1rem 0 .5rem; }
+.anthem-tools .nudge { display: inline-flex; align-items: center; gap: .4rem; flex-wrap: wrap; font-size: .9rem; }
+.lyrics-box { max-height: 26rem; overflow-y: auto; margin-top: 1rem; padding: 1.25rem 1rem; background: var(--ivory); border: 1.5px solid var(--gold-dark); text-align: center; scroll-behavior: auto; }
+.lyrics-only .lyrics-box { max-height: none; }
+.ly-section { margin: 1.4rem 0 .3rem; font-family: var(--font-ceremony); letter-spacing: .12em; text-transform: uppercase; font-size: .75rem; color: var(--crimson); }
+.ly-line { margin: .15rem 0; padding: .3rem .5rem; font-size: 1.15rem; line-height: 1.4; color: #5a4a40; cursor: pointer; border-radius: 2px; transition: color .25s, background .25s, transform .25s; }
+.ly-line:hover { color: var(--burgundy); }
+.ly-line.past { color: #8a7a70; }
+.ly-line.now { color: var(--burgundy-900); font-weight: 700; font-size: 1.4rem; background: linear-gradient(90deg, transparent, rgba(226,196,109,.45), transparent); }
+@media (prefers-reduced-motion: reduce) { .ly-line { transition: none; } }
+
+.anthem-teaser { background: var(--parchment); padding-block: clamp(2rem, 5vw, 3.5rem); border-block: 2px solid var(--gold); }
+.anthem-teaser-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.5rem 2.5rem; }
+.anthem-thumb { position: relative; display: block; width: min(320px, 100%); border: 2px solid var(--gold); box-shadow: 0 8px 22px rgba(36,5,16,.3); }
+.anthem-thumb img { display: block; width: 100%; height: auto; }
+.anthem-thumb .play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.6rem; color: var(--gold-light); background: rgba(36,5,16,.35); transition: background .2s; }
+.anthem-thumb:hover .play, .anthem-thumb:focus-visible .play { background: rgba(36,5,16,.15); }
+.an-row { display: flex; align-items: center; gap: .6rem; padding: .3rem 0; border-bottom: 1px solid var(--parchment-deep); flex-wrap: wrap; }
+.an-row .an-t { width: 5.5rem; }
+.an-row .an-sec { flex-basis: 100%; margin-top: .6rem; text-transform: uppercase; letter-spacing: .1em; }
+.an-row .an-text { flex: 1 1 14rem; }
