@@ -113,13 +113,14 @@
 
   function campaignForm(c) {
     var isNew = !c;
-    c = c || { id: "", title: "", channel: "Billboard", venue: "", description: "", area_sqft: "", cost_inr: "", credit_value_inr: 0, status: "Draft", closes_on: "" };
+    c = c || { id: "", title: "", channel: "Billboard", venue: "", description: "", area_sqft: "", cost_inr: "", credit_value_inr: 5, min_entry_inr: 500, status: "Draft", closes_on: "" };
     return '<h2 id="ad-title" class="md-title">' + (isNew ? "Add a campaign" : "Edit campaign") + '</h2><form data-form="campaign" data-id="' + esc(c.id) + '">' +
       fld("cm-title", "Title *", inp("cm-title", c.title, 'required maxlength="120" placeholder="e.g. Gym banners in Koramangala, or Blue Line metro panels"')) +
       '<div class="row-2">' + fld("cm-channel", "Channel", sel("cm-channel", ["Billboard", "Prime-location banner", "Metro / transit", "Gym / fitness centre", "School display", "College campus", "Coaching centre", "Cafe / restaurant", "Mall / retail", "Residential society", "Print / flyers", "Digital / social", "Event / exhibition", "Other"], c.channel)) + fld("cm-status", "Status", sel("cm-status", ["Draft", "Open for pitches", "Matching", "Confirmed", "Live", "Done", "Cancelled"], c.status), "Members see everything except Draft. Only “Open for pitches” lets them join.") + "</div>" +
       fld("cm-venue", "Where", inp("cm-venue", c.venue, 'maxlength="160"')) + fld("cm-desc", "What members should know", ta("cm-desc", c.description, 4)) +
       '<div class="row-2">' + fld("cm-area", "Space (sq ft)", '<input type="number" id="cm-area" min="0" step="0.5" value="' + esc(c.area_sqft || "") + '">') + fld("cm-cost", "Cost to the Republic (₹)", '<input type="number" id="cm-cost" min="0" value="' + esc(c.cost_inr == null ? "" : c.cost_inr) + '">') + "</div>" +
       '<div class="row-2">' + fld("cm-cv", "Value of 1 Crown in this campaign (₹)", '<input type="number" id="cm-cv" min="0" value="' + esc(c.credit_value_inr || 0) + '">', "How much a Crown counts toward a member’s share here. 0 means Crowns don’t count.") + fld("cm-close", "Closes on", '<input type="date" id="cm-close" value="' + esc(c.closes_on || "") + '">') + "</div>" +
+      fld("cm-min", "Smallest entry (₹, cash plus Crowns)", '<input type="number" id="cm-min" min="0" value="' + esc(c.min_entry_inr == null ? 500 : c.min_entry_inr) + '">', "500 is the default: 100 Crowns at ₹5 each. Shared placements keep it affordable: many small entries add up.") +
       '<div class="panel"><p>Be clear with members what is and isn’t agreed. Nothing is binding until it’s in writing, and every ad must be truthful. Take extra care with anything shown to children, and with education or coaching claims.</p></div>' +
       '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save campaign</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
   }
@@ -198,9 +199,9 @@
           '<form data-form="winner" data-mission="' + esc(m.id) + '" class="toolbar"><label class="sr-only" for="wn-m-' + esc(m.id) + '">Winner</label>' + sel("wn-m-" + esc(m.id), C.mem.map(function (x) { return [x.id, (x.display_name || "(no profile)") + " · " + x.email]; }), "") +
           '<input type="number" id="wn-p-' + esc(m.id) + '" min="1" max="20" value="' + (mine.length + 1) + '" aria-label="Place" style="max-width:5rem"><button type="submit" class="btn btn-gold btn-sm">Add winner</button></form></div>';
       }).join("") : '<p class="file-meta">No competitions yet. In the Missions tab, edit a mission and tick “competition”, then list the gift options.</p>') +
-        "<h3>Leaderboard (earned Crowns)</h3><p class=\"file-meta\">For you only. Not shown to members. Click a name to read their pitches.</p>" +
+        "<h3>Leaderboard (earned Crowns)</h3><div class=\"mc-actions\" style=\"margin-top:0\">" + act("Publish the leaderboard to the Newsroom", "lb-publish", "x", "btn-gold") + "</div><p class=\"file-meta\">For you only. Not shown to members. Click a name to read their pitches.</p>" +
         (lb.length ? lb.map(function (x, i) { return '<div class="entry"><p><strong>' + (i + 1) + ". " + esc(x.display_name || "(no profile)") + "</strong> &middot; " + esc(x.email) + " &middot; earned " + x.earned + " &middot; balance " + x.balance + " &middot; " + esc(levelFor(x.earned)) +
-          " &middot; " + x.pitches + " pitch(es), " + x.ad_pitches + " ad pitch(es)</p><div class=\"mc-actions\">" + act("Read their pitches", "lb-pitches", x.id) + "</div></div>"; }).join("") : '<p class="file-meta">Nobody has earned any Crowns yet.</p>');
+          " &middot; " + x.pitches + " pitch(es), " + x.ad_pitches + " ad pitch(es)</p><div class=\"mc-actions\">" + act("Read their pitches", "lb-pitches", x.id) + act("Grant Crowns", "lb-grant", x.id, "btn-dark") + act("Grant certificate", "lb-cert", x.id) + "</div></div>"; }).join("") : '<p class="file-meta">Nobody has earned any Crowns yet.</p>');
     }).catch(function (e) { warn(host, e); });
   });
 
@@ -293,6 +294,153 @@
     var i = Number(el.getAttribute("data-i")); if (C.anthem[i]) C.anthem[i].t = Math.max(0, Number(el.value) || 0);
   });
 
+
+  /* ======================================================================
+     CROWN SHOP: offers and purchases
+     ====================================================================== */
+  A.addTab("shop", "Crown Shop", function (host) {
+    Promise.all([sb().from("crown_offers").select("*").order("sort_order", { ascending: true }), sb().from("crown_purchases").select("*").order("created_at", { ascending: false }), members(), sb().from("app_settings").select("*").eq("id", 1).maybeSingle(), sb().from("crown_exchange").select("*").order("created_at", { ascending: false })]).then(function (rs) {
+      if (rs[0].error) throw rs[0].error; if (rs[1].error) throw rs[1].error;
+      C.offers = rs[0].data || []; C.purch = rs[1].data || []; C.mem = rs[2];
+      C.settings = (rs[3] && rs[3].data) || { crown_rate_inr: 5, exchange_enabled: false, exchange_min_inr: 100, ad_min_inr: 500, auto_approve_adults: true, exchange_instructions: "" }; C.exch = (rs[4] && rs[4].data) || [];
+      var open = C.purch.filter(function (p) { return p.status === "Requested"; });
+      host.innerHTML = settingsPanel() + exchangePanel() + '<div class="mc-actions" style="margin-top:0"><button type="button" class="btn btn-gold btn-sm" data-act="new-offer">Add an offer</button></div>' +
+        '<p class="file-meta">Offers members can buy with Crowns. Only offer things you will really deliver. Members see an offer only while it is switched on. Crowns have no cash value.</p>' +
+        (C.offers.length ? C.offers.map(function (o) {
+          return '<div class="entry"><p><strong>' + esc(o.name) + "</strong> &middot; " + esc(o.kind) + " &middot; " + o.cost + " Crowns" + (o.stock != null ? " &middot; " + o.stock + " left" : "") + (o.adults_only ? " &middot; 18+" : "") + (o.active ? ' <span class="badge st-open">On</span>' : ' <span class="badge st-archived">Off</span>') + "</p>" +
+            '<div class="mc-actions">' + act("Edit", "edit-offer", o.id) + act(o.active ? "Switch off" : "Switch on", "toggle-offer", o.id) + act("Delete", "delete-offer", o.id) + "</div></div>";
+        }).join("") : '<p class="file-meta">No offers yet.</p>') +
+        "<h3>Purchases to deliver (" + open.length + ")</h3>" + (C.purch.length ? C.purch.map(function (p) {
+          return '<div class="entry"><p><strong>' + esc(p.offer_name) + "</strong> &middot; " + p.cost + " Crowns &middot; " + esc(memberName(C.mem, p.member)) + ' <span class="badge ' + (p.status === "Fulfilled" ? "st-open" : p.status === "Refunded" ? "st-archived" : "st-in-progress") + '">' + esc(p.status) + "</span> &middot; " + fmt(p.created_at) + "</p>" + (p.note ? '<p class="why">' + esc(p.note) + "</p>" : "") +
+            '<div class="mc-actions">' + (p.status === "Requested" ? act("Mark delivered", "purch-done", p.id, "btn-dark") : "") + (p.status !== "Refunded" ? act("Refund Crowns", "purch-refund", p.id) : "") + act("Add a note", "purch-note", p.id) + "</div></div>";
+        }).join("") : '<p class="file-meta">No purchases yet.</p>');
+    }).catch(function (er) { warn(host, er); });
+  });
+
+  function settingsPanel() {
+    var s = C.settings;
+    return '<details class="panel" open><summary><strong>Currency Exchange and joining settings</strong></summary><form data-form="settings" class="shell">' +
+      '<div class="row-2">' + fld("sx-rate", "Rupees per Crown", '<input type="number" id="sx-rate" min="1" max="1000" value="' + esc(s.crown_rate_inr) + '">', "5 means ₹500 = 100 Crowns.") + fld("sx-min", "Smallest exchange (₹)", '<input type="number" id="sx-min" min="1" value="' + esc(s.exchange_min_inr) + '">') + "</div>" +
+      fld("sx-admin", "Smallest value of one ad entry (₹)", '<input type="number" id="sx-admin" min="0" value="' + esc(s.ad_min_inr) + '">', "Used as the starting minimum for new campaigns (you can set each campaign's own minimum too). ₹500 = 100 Crowns at the default rate.") +
+      fld("sx-ins", "How to pay (shown to members when the Exchange is open)", ta("sx-ins", s.exchange_instructions || "", 3), "For example your UPI ID or bank details. Only put this in once you have a proper account for it.") +
+      chkb("sx-on", "<strong>Open the Currency Exchange.</strong> Leave this OFF until your current account and registered business are ready.", s.exchange_enabled) +
+      chkb("sx-auto", "Approve adults automatically when they join the Network (under-18s always wait for you and a guardian)", s.auto_approve_adults) +
+      '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Save settings</button></form></details>';
+  }
+  function exchangePanel() {
+    var open = C.exch.filter(function (x) { return x.status === "Requested"; });
+    return "<h3>Exchange requests (" + open.length + " waiting)</h3><p class=\"file-meta\">A member asked to exchange rupees for Crowns. Check that the payment really arrived (in your account), then confirm. The Crowns are added once, at the rate that applied when they asked.</p>" +
+      (C.exch.length ? C.exch.map(function (x) {
+        return '<div class="entry"><p><strong>₹' + x.amount_inr + " &rarr; " + x.crowns + " Crowns</strong> &middot; " + esc(memberName(C.mem, x.member)) + (x.reference ? " &middot; ref: " + esc(x.reference) : "") + ' <span class="badge ' + (x.status === "Confirmed" ? "st-open" : x.status === "Rejected" ? "st-archived" : "st-in-progress") + '">' + esc(x.status) + "</span> &middot; " + fmt(x.created_at) + "</p>" +
+          (x.status === "Requested" ? '<div class="mc-actions">' + act("Payment received: confirm", "ex-confirm", x.id, "btn-dark") + act("Reject", "ex-reject", x.id) + "</div>" : "") + "</div>"; }).join("") : '<p class="file-meta">No requests yet.</p>');
+  }
+
+  function offerForm(o) {
+    var isNew = !o; o = o || { id: "", name: "", description: "", kind: "Perk", cost: 10, adults_only: false, stock: null, active: false, sort_order: 0 };
+    return '<h2 id="ad-title" class="md-title">' + (isNew ? "Add an offer" : "Edit offer") + '</h2><form data-form="offer" data-id="' + esc(o.id) + '">' +
+      fld("of-name", "Name *", inp("of-name", o.name, 'required maxlength="80" placeholder="e.g. Priority review of one ad pitch"')) + fld("of-desc", "What the member gets", ta("of-desc", o.description, 4), "Be specific about what you will deliver and when.") +
+      '<div class="row-2">' + fld("of-kind", "Type", sel("of-kind", ["Perk", "Access", "Gift", "Service", "Other"], o.kind)) + fld("of-cost", "Cost in Crowns *", '<input type="number" id="of-cost" required min="1" max="100000" value="' + esc(o.cost) + '">') + "</div>" +
+      '<div class="row-2">' + fld("of-stock", "How many are available (leave blank for unlimited)", '<input type="number" id="of-stock" min="0" value="' + esc(o.stock == null ? "" : o.stock) + '">') + fld("of-order", "Order (smaller first)", '<input type="number" id="of-order" value="' + esc(o.sort_order || 0) + '">') + "</div>" +
+      chkb("of-adults", "Only for members aged 18 and over", o.adults_only) + chkb("of-active", "Switched on (visible in the shop)", o.active) +
+      '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Save offer</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
+  }
+
+
+  /* ======================================================================
+     COMMUNITY: moderation, gatherings, rooms, stamps
+     ====================================================================== */
+  A.addTab("community", "Community", function (host) {
+    var view = C.cview || "reports";
+    var nav = '<div class="filters" role="group" aria-label="Community sections">' + [["reports", "Reports"], ["messages", "Messages"], ["wall", "Recognition Wall"], ["events", "Gatherings"], ["rooms", "Rooms"], ["stamps", "Stamps"]].map(function (t) {
+      return '<button type="button" class="chip" data-act="cm-view" data-id="' + t[0] + '" aria-pressed="' + (view === t[0]) + '">' + t[1] + "</button>"; }).join("") + "</div>";
+    var body = document.createElement("div"); host.innerHTML = nav; host.appendChild(body);
+    ({ reports: cmReports, messages: cmMessages, wall: cmWall, events: cmEvents, rooms: cmRooms, stamps: cmStamps }[view])(body);
+  });
+  function snip(t) { t = String(t || ""); return esc(t.length > 160 ? t.slice(0, 160) + "…" : t); }
+  function cmReports(host) {
+    Promise.all([sb().from("reports").select("*").eq("status", "open").order("created_at", { ascending: false }), sb().from("messages").select("*"), sb().from("recognitions").select("*"), sb().from("events").select("*"), members()]).then(function (rs) {
+      if (rs[0].error) throw rs[0].error; var rep = (rs[0].data || []).filter(function (r) { return ["message", "event", "recognition"].indexOf(r.target_type) > -1; });
+      var map = { message: rs[1].data || [], recognition: rs[2].data || [], event: rs[3].data || [] }; C.mem = rs[4]; C.reps = rep;
+      host.innerHTML = '<p class="file-meta">Open reports about messages, the wall and gatherings. Reports about pitches and profiles are in the Review tab.</p>' + (rep.length ? rep.map(function (r) {
+        var t = map[r.target_type].filter(function (x) { return x.id === r.target_id; })[0];
+        return '<div class="entry"><p><strong>' + esc(r.target_type) + "</strong> reported by " + esc(memberName(C.mem, r.reporter)) + " &middot; " + fmt(r.created_at) + '</p><p class="why">' + esc(r.reason) + "</p>" +
+          (t ? "<p>&ldquo;" + snip(t.body || t.title) + "&rdquo; by " + esc(t.author_name || t.creator_name || "?") + (t.hidden ? " (already hidden)" : "") + "</p>" : '<p class="file-meta">The content no longer exists.</p>') +
+          '<div class="mc-actions">' + (t ? act(r.target_type === "event" ? "Cancel the gathering" : "Hide it", "cm-hide-report", r.id, "btn-dark") : "") + act("Dismiss", "cm-dismiss", r.id) + "</div></div>";
+      }).join("") : '<p class="file-meta">No open reports. All quiet in the realm.</p>');
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmMessages(host) {
+    sb().from("messages").select("*").order("created_at", { ascending: false }).limit(100).then(function (r) {
+      if (r.error) throw r.error; C.msgs = r.data || [];
+      host.innerHTML = '<p class="file-meta">The latest 100 messages across all rooms. Hiding a message removes it for everyone except you.</p>' + (C.msgs.length ? C.msgs.map(function (m) {
+        return '<div class="entry"><p><strong>' + esc(m.author_name || "?") + "</strong> &middot; #" + esc(m.room) + " &middot; " + esc(m.age_group) + " circle &middot; " + fmt(m.created_at) + (m.hidden ? ' <span class="badge st-archived">Hidden</span>' : "") + "</p><p>" + snip(m.body) + '</p><div class="mc-actions">' + act(m.hidden ? "Unhide" : "Hide", "cm-toggle-msg", m.id) + act("Delete", "cm-del-msg", m.id) + "</div></div>"; }).join("") : '<p class="file-meta">No messages yet.</p>');
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmWall(host) {
+    sb().from("recognitions").select("*").order("created_at", { ascending: false }).limit(100).then(function (r) {
+      if (r.error) throw r.error; C.wall = r.data || [];
+      host.innerHTML = C.wall.length ? C.wall.map(function (m) { return '<div class="entry"><p><strong>' + esc(m.author_name) + "</strong>" + (m.to_name ? " &rarr; " + esc(m.to_name) : "") + " &middot; " + esc(m.kind) + " &middot; " + esc(m.age_group) + " circle" + (m.hidden ? ' <span class="badge st-archived">Hidden</span>' : "") + "</p><p>" + snip(m.body) + '</p><div class="mc-actions">' + act(m.hidden ? "Unhide" : "Hide", "cm-toggle-rec", m.id) + act("Delete", "cm-del-rec", m.id) + "</div></div>"; }).join("") : '<p class="file-meta">The wall is empty.</p>';
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmEvents(host) {
+    sb().from("events").select("*").order("starts_at", { ascending: false }).limit(100).then(function (r) {
+      if (r.error) throw r.error; C.evs = r.data || []; var pend = C.evs.filter(function (x) { return x.status === "Pending"; });
+      host.innerHTML = '<p class="file-meta">Gatherings hosted by members under 18 wait here for your approval before they’re listed. Adults’ gatherings are listed straight away and can be cancelled here.</p>' + "<h3>Waiting for approval (" + pend.length + ")</h3>" +
+        (pend.length ? pend.map(function (x) { return evRow(x, true); }).join("") : '<p class="file-meta">Nothing waiting.</p>') + "<h3>All gatherings</h3>" + (C.evs.length ? C.evs.map(function (x) { return evRow(x, false); }).join("") : '<p class="file-meta">None yet.</p>');
+    }).catch(function (er) { warn(host, er); });
+  }
+  function evRow(x, pend) {
+    return '<div class="entry"><p><strong>' + esc(x.title) + "</strong> &middot; " + esc(x.kind) + " &middot; " + fmt(x.starts_at) + " &middot; hosted by " + esc(x.creator_name || "?") + " &middot; " + esc(x.age_group) + ' circle <span class="badge st-in-progress">' + esc(x.status) + "</span></p>" + (x.description ? "<p>" + snip(x.description) + "</p>" : "") +
+      '<div class="mc-actions">' + (x.status === "Pending" ? act("Approve", "cm-ev", x.id, "btn-dark", ' data-do="Listed"') + act("Reject", "cm-ev", x.id, "btn-line", ' data-do="Rejected"') : "") + (x.status === "Listed" ? act("Cancel", "cm-ev", x.id, "btn-line", ' data-do="Cancelled"') : "") + "</div></div>";
+  }
+  function cmRooms(host) {
+    sb().from("rooms").select("*").order("sort", { ascending: true }).then(function (r) {
+      if (r.error) throw r.error; C.rooms = r.data || [];
+      host.innerHTML = '<form data-form="room" class="shell"><div class="row-2">' + fld("rm-slug", "Short name (letters, numbers, dashes) *", inp("rm-slug", "", 'required maxlength="30" placeholder="e.g. design"')) + fld("rm-name", "Room name *", inp("rm-name", "", 'required maxlength="40"')) + "</div>" + fld("rm-desc", "One-line description", inp("rm-desc", "", 'maxlength="160"')) + '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Add room</button></form>' +
+        C.rooms.map(function (m) { return '<div class="entry"><p><strong># ' + esc(m.name) + "</strong> &middot; " + esc(m.slug) + (m.archived ? ' <span class="badge st-archived">Archived</span>' : "") + '</p><p class="file-meta">' + esc(m.description || "") + '</p><div class="mc-actions">' + act(m.archived ? "Bring back" : "Archive", "cm-room", m.slug) + "</div></div>"; }).join("");
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmStamps(host) {
+    Promise.all([sb().from("stamp_types").select("*").order("sort", { ascending: true }), members()]).then(function (rs) {
+      if (rs[0].error) throw rs[0].error; C.mem = rs[1];
+      host.innerHTML = '<p class="file-meta">Some stamps are awarded automatically (first message, hosting, attending, thanking). Award the others here: completing a mission, helping, sharing knowledge, collaborating.</p>' +
+        '<form data-form="stamp" class="shell"><div class="row-2">' + fld("st-member", "Member", sel("st-member", C.mem.map(function (m) { return [m.id, (m.display_name || "(no profile)") + " · " + m.email]; }), "")) + fld("st-key", "Stamp", sel("st-key", (rs[0].data || []).map(function (s) { return [s.key, s.name]; }), "")) + "</div>" +
+        fld("st-note", "Note (optional, the member sees it)", inp("st-note", "", 'maxlength="200"')) + '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Award stamp</button></form>';
+    }).catch(function (er) { warn(host, er); });
+  }
+
+
+  /* ======================================================================
+     GUARDIANS: members under 18 who asked for more access
+     ====================================================================== */
+  A.addTab("guardians", "Guardians", function (host) {
+    Promise.all([sb().from("members").select("*").in ? sb().from("members").select("*") : sb().from("members").select("*"), members()]).then(function (rs) {
+      if (rs[0].error) throw rs[0].error; C.mem = rs[1];
+      var teens = (rs[0].data || []).filter(function (m) { return m.age_band === "14–15" || m.age_band === "16–17"; });
+      host.innerHTML = '<p class="file-meta">Members under 18 who give a parent or guardian’s details. <strong>Contact the guardian yourself</strong> (a call is best), make sure they agree, and only then press Verify. A verified guardian unlocks the Ad Bureau and the Currency Exchange for that member. Their details are private to you. Under-18s always stay in the teen circle.</p>' +
+        (teens.length ? teens.map(function (m) {
+          return '<div class="entry"><p><strong>' + esc(memberName(C.mem, m.id)) + "</strong> &middot; " + esc(m.age_band) + (m.guardian_verified ? ' <span class="badge st-open">Guardian verified</span>' : m.guardian_name ? ' <span class="badge st-in-progress">Waiting for you</span>' : ' <span class="badge st-archived">No guardian details</span>') + "</p>" +
+            (m.guardian_name ? "<p>Guardian: <strong>" + esc(m.guardian_name) + "</strong> &middot; " + esc(m.guardian_contact || "") + "</p>" : "") +
+            '<div class="mc-actions">' + (m.guardian_name && !m.guardian_verified ? act("Verify guardian", "gd-verify", m.id, "btn-dark", ' data-do="yes"') : "") + (m.guardian_verified ? act("Remove verification", "gd-verify", m.id, "btn-line", ' data-do="no"') : "") + "</div></div>"; }).join("") : '<p class="file-meta">No members under 18 yet.</p>');
+    }).catch(function (er) { warn(host, er); });
+  });
+
+
+  function lbMember(id) { return (C.lb || []).filter(function (x) { return x.id === id; })[0] || { id: id, display_name: "", email: "" }; }
+  function grantForm(m) {
+    return '<h2 id="ad-title" class="md-title">Grant Crowns to ' + esc(m.display_name || m.email) + '</h2><form data-form="grant" data-member="' + esc(m.id) + '">' +
+      '<div class="row-2">' + fld("gr-amt", "Crowns *", '<input type="number" id="gr-amt" required step="1" min="-100000" max="100000" placeholder="e.g. 50">') + fld("gr-kind", "Why", sel("gr-kind", ["Mission", "Helped a builder", "Participation", "Adjustment"], "Mission")) + "</div>" +
+      fld("gr-reason", "Reason (the member sees this) *", inp("gr-reason", "", 'required maxlength="200" placeholder="e.g. Mission I, strong and honest work"'), "Crowns for Mission, Helped a builder and Participation count toward their level. Adjustment doesn't.") +
+      '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Grant</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
+  }
+  function certForm(m) {
+    return '<h2 id="ad-title" class="md-title">Certificate for ' + esc(m.display_name || m.email) + '</h2><form data-form="cert" data-member="' + esc(m.id) + '">' +
+      fld("ce-name", "Name on the certificate *", inp("ce-name", m.display_name || "", 'required maxlength="80"')) + fld("ce-title", "Title *", inp("ce-title", "", 'required maxlength="120" placeholder="e.g. Royal Mission I: Distinction"')) +
+      fld("ce-reason", "Why (optional, shown on the certificate)", ta("ce-reason", "", 3), "Keep it true and specific.") +
+      '<div class="panel"><p>The certificate says plainly that the Republic is fictional and that this recognises taking part. It is not an academic qualification.</p></div>' +
+      '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Grant certificate</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>';
+  }
+
   /* ---------- clicks ---------- */
   A.onClick(function (a, el, id, what) {
     var db = sb(), reload = A.loadTab;
@@ -312,6 +460,42 @@
     if (a === "an-apply") { var parsed = parseAnthem(document.getElementById("an-text").value); if (!parsed.length) { A.say("Add at least one line of lyrics.", true); return true; } C.anthem = parsed; autoSpace(Number(document.getElementById("an-a0").value) || 14, Number(document.getElementById("an-a1").value) || 192); document.getElementById("an-rows").innerHTML = anthemRows(); SYNC.pos = -1; syncStatus(); A.say("Lyrics updated and re-spaced. Now sync them."); return true; }
     if (a === "an-auto") { autoSpace(Number(document.getElementById("an-a0").value) || 14, Number(document.getElementById("an-a1").value) || 192); document.getElementById("an-rows").innerHTML = anthemRows(); A.say("Lines spread evenly. Sync them for exact timing."); return true; }
     if (a === "an-reset") { if (confirm("Remove your synced version and go back to the built-in lyrics?")) db.rpc("admin_save_anthem", { p_lines: [] }).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); A.say("Back to the built-in lyrics."); reload(); }); return true; }
+    if (a === "new-offer") { A.showDialog(offerForm()); return true; }
+    if (a === "edit-offer") { A.showDialog(offerForm((C.offers || []).filter(function (x) { return x.id === id; })[0])); return true; }
+    if (a === "toggle-offer") { var of0 = (C.offers || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("crown_offers").update({ active: !(of0 && of0.active) }).eq("id", id), "Updated."); }
+    if (a === "delete-offer") { if (confirm("Delete this offer? Past purchases stay on record.")) run(db.from("crown_offers").delete().eq("id", id), "Offer deleted."); return true; }
+    if (a === "purch-done") return run(db.from("crown_purchases").update({ status: "Fulfilled", fulfilled_at: new Date().toISOString() }).eq("id", id), "Marked as delivered.");
+    if (a === "purch-refund") { if (confirm("Refund the Crowns for this purchase?")) db.rpc("admin_refund_purchase", { p_purchase: id }).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); A.say("Refunded. The Crowns are back in their wallet."); reload(); }); return true; }
+    if (a === "purch-note") { var pn = prompt("Note for the member (they will see it):", ""); if (pn != null) return run(db.from("crown_purchases").update({ note: pn.slice(0, 300) || null }).eq("id", id), "Note saved."); return true; }
+    if (a === "cm-view") { C.cview = id; reload(); return true; }
+    if (a === "cm-toggle-msg") { var mg = (C.msgs || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("messages").update({ hidden: !(mg && mg.hidden) }).eq("id", id), "Updated."); }
+    if (a === "cm-del-msg") { if (confirm("Delete this message for good?")) run(db.from("messages").delete().eq("id", id), "Deleted."); return true; }
+    if (a === "cm-toggle-rec") { var rc = (C.wall || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("recognitions").update({ hidden: !(rc && rc.hidden) }).eq("id", id), "Updated."); }
+    if (a === "cm-del-rec") { if (confirm("Delete this for good?")) run(db.from("recognitions").delete().eq("id", id), "Deleted."); return true; }
+    if (a === "cm-ev") return run(db.from("events").update({ status: what }).eq("id", id), "Updated.");
+    if (a === "cm-room") { var rm = (C.rooms || []).filter(function (x) { return x.slug === id; })[0]; return run(db.from("rooms").update({ archived: !(rm && rm.archived) }).eq("slug", id), "Updated."); }
+    if (a === "cm-dismiss") return run(db.from("reports").update({ status: "dismissed" }).eq("id", id), "Report dismissed.");
+    if (a === "cm-hide-report") {
+      var rp = (C.reps || []).filter(function (x) { return x.id === id; })[0]; if (!rp) return true;
+      var tbl = { message: "messages", recognition: "recognitions", event: "events" }[rp.target_type], patch = rp.target_type === "event" ? { status: "Cancelled" } : { hidden: true };
+      db.from(tbl).update(patch).eq("id", rp.target_id).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); return db.from("reports").update({ status: "actioned" }).eq("id", id).then(function () { A.say("Done. The content is hidden and the report is closed."); reload(); }); }); return true;
+    }
+    if (a === "ex-confirm") { db.rpc("admin_confirm_exchange", { p_id: id }).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); A.say(esc(r.data || "Confirmed.")); reload(); }); return true; }
+    if (a === "ex-reject") { var exn = prompt("Why? (the member will see this)", ""); if (exn == null) return true; return run(db.from("crown_exchange").update({ status: "Rejected", decided_at: new Date().toISOString(), admin_note: exn.slice(0, 300) || null }).eq("id", id), "Rejected."); }
+    if (a === "gd-verify") { db.rpc("admin_verify_guardian", { p_member: id, p_verified: what === "yes" }).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); A.say(esc(r.data || "Done.")); reload(); }); return true; }
+    if (a === "lb-grant") { A.showDialog(grantForm(lbMember(id))); return true; }
+    if (a === "lb-cert") { A.showDialog(certForm(lbMember(id))); return true; }
+    if (a === "lb-publish") {
+      db.rpc("admin_public_leaderboard", { p_limit: 10 }).then(function (r) {
+        if (r.error) return A.say(A.errText(r.error), true); var rows = r.data || []; if (!rows.length) return A.say("Nobody has earned any Crowns yet, so there is nothing to publish.", true);
+        var d = new Date(), month = d.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+        var body = "The builders of the Republic who have earned the most Crowns through real work: Royal Missions, helping other builders and taking part. Only members who chose to be named appear by name.\n\n" +
+          rows.map(function (x) { return x.rank + ". " + x.name + ": " + x.earned + " Crowns"; }).join("\n") + "\n\nCrowns are earned, never bought, and a place on this list does not decide funding.";
+        A.showDialog('<h2 id="ad-title" class="md-title">Publish the leaderboard</h2><p class="file-meta">Names shown are only for adults who opted in. Everyone else appears as "A builder of the Republic". Edit anything before you publish.</p><form data-form="lbpost">' +
+          fld("lp-head", "Headline", inp("lp-head", "The Royal Leaderboard, " + month, 'required maxlength="140"')) + fld("lp-body", "Text", ta("lp-body", body, 12)) + chkb("lp-pub", "Publish to the Newsroom now", true) +
+          '<p class="field-error" id="dlg-error" role="alert"></p><div class="mc-actions"><button type="submit" class="btn btn-dark">Post it</button><button type="button" class="btn btn-line" data-close>Cancel</button></div></form>');
+      }); return true;
+    }
     if (a === "new-scheme") { A.showDialog(schemeForm()); return true; }
     if (a === "edit-scheme") { A.showDialog(schemeForm((C.schemes || []).filter(function (x) { return x.id === id; })[0])); return true; }
     if (a === "scheme-today") return run(db.from("schemes").update({ last_verified: today() }).eq("id", id), "Marked as checked today.");
@@ -388,6 +572,35 @@
         return db.from("anthem_settings").upsert({ id: 1, title: v("an-title-i") || null, video_url: vid || null, poster_url: (C.anthemSettings || {}).poster_url || null, time_offset: Math.max(-10, Math.min(10, Number(v("an-off-i")) || 0)) });
       }).then(function (r) { if (r.error) throw r.error; t.busy(false); A.say("The anthem is saved (" + lns.length + " lines). Open the Anthem page to try it."); }).catch(t.fail); return true;
     }
+    if (kind === "offer") {
+      var oid = form.getAttribute("data-id"), cost = parseInt(v("of-cost"), 10);
+      if (!(cost >= 1)) { t.fail({ message: "The cost must be at least 1 Crown." }); return true; }
+      var orow = { name: v("of-name"), description: v("of-desc") || null, kind: v("of-kind"), cost: cost, stock: v("of-stock") === "" ? null : Math.max(0, parseInt(v("of-stock"), 10) || 0), adults_only: c("of-adults"), active: c("of-active"), sort_order: parseInt(v("of-order"), 10) || 0 };
+      t.busy(true); (oid ? db.from("crown_offers").update(orow).eq("id", oid) : db.from("crown_offers").insert(orow)).then(function (r) { if (r.error) return t.fail(r.error); A.done("Offer saved."); }, t.fail); return true;
+    }
+    if (kind === "room") {
+      var slug = v("rm-slug").toLowerCase(); if (!/^[a-z0-9-]{2,30}$/.test(slug)) { t.fail({ message: "The short name can only use letters, numbers and dashes." }); return true; }
+      t.busy(true); db.from("rooms").insert({ slug: slug, name: v("rm-name"), description: v("rm-desc") || null, sort: 50 }).then(function (r) { if (r.error) return t.fail(r.error); A.done("Room added."); }, t.fail); return true;
+    }
+    if (kind === "stamp") {
+      t.busy(true); db.rpc("admin_award_stamp", { p_member: v("st-member"), p_key: v("st-key"), p_note: v("st-note") || null }).then(function (r) { t.busy(false); if (r.error) return A.say(A.errText(r.error), true); A.say("Stamp awarded. The member gets an alert."); }); return true;
+    }
+    if (kind === "settings") {
+      var rate = parseInt(v("sx-rate"), 10); if (!(rate >= 1)) { t.fail({ message: "Rupees per Crown must be at least 1." }); return true; }
+      t.busy(true); db.from("app_settings").upsert({ id: 1, crown_rate_inr: rate, exchange_min_inr: Math.max(1, parseInt(v("sx-min"), 10) || 100), ad_min_inr: Math.max(0, parseInt(v("sx-admin"), 10) || 0), exchange_instructions: v("sx-ins") || null, exchange_enabled: c("sx-on"), auto_approve_adults: c("sx-auto") })
+        .then(function (r) { t.busy(false); if (r.error) return A.say(A.errText(r.error), true); A.say("Settings saved."); }); return true;
+    }
+    if (kind === "grant") {
+      var amt2 = parseInt(v("gr-amt"), 10); if (!amt2) { t.fail({ message: "Enter a number of Crowns (not zero)." }); return true; }
+      t.busy(true); db.from("credit_entries").insert({ member: form.getAttribute("data-member"), amount: amt2, kind: v("gr-kind"), reason: v("gr-reason") }).then(function (r) { if (r.error) return t.fail(r.error); A.done("Crowns granted."); }, t.fail); return true;
+    }
+    if (kind === "cert") {
+      t.busy(true); db.from("certificates").insert({ member: form.getAttribute("data-member"), holder_name: v("ce-name"), title: v("ce-title"), reason: v("ce-reason") || null }).then(function (r) { if (r.error) return t.fail(r.error); A.done("Certificate granted. The member will find it in their wallet."); }, t.fail); return true;
+    }
+    if (kind === "lbpost") {
+      var slug = "leaderboard-" + new Date().toISOString().slice(0, 10) + "-" + A.uuid().slice(0, 4), pubn = c("lp-pub");
+      t.busy(true); db.from("stories").insert({ slug: slug, kind: "Republic news", headline: v("lp-head"), body: v("lp-body"), relationship: "None", published: pubn, published_at: pubn ? new Date().toISOString() : null }).then(function (r) { if (r.error) return t.fail(r.error); A.done(pubn ? "Published to the Newsroom." : "Saved as a draft in the Stories tab."); }, t.fail); return true;
+    }
     if (kind === "scheme") {
       var id = form.getAttribute("data-id"), pub = c("sc-pub"), ver = v("sc-ver");
       if (pub && !ver) { t.fail({ message: "Please check the official site and set “Last checked” before publishing." }); return true; }
@@ -408,7 +621,7 @@
     }
     if (kind === "campaign") {
       var cid = form.getAttribute("data-id");
-      var cr = { title: v("cm-title"), channel: v("cm-channel"), status: v("cm-status"), venue: v("cm-venue") || null, description: v("cm-desc") || null, area_sqft: v("cm-area") ? Number(v("cm-area")) : null, cost_inr: v("cm-cost") !== "" ? parseInt(v("cm-cost"), 10) : null, credit_value_inr: parseInt(v("cm-cv"), 10) || 0, closes_on: v("cm-close") || null };
+      var cr = { title: v("cm-title"), channel: v("cm-channel"), status: v("cm-status"), venue: v("cm-venue") || null, description: v("cm-desc") || null, area_sqft: v("cm-area") ? Number(v("cm-area")) : null, cost_inr: v("cm-cost") !== "" ? parseInt(v("cm-cost"), 10) : null, credit_value_inr: parseInt(v("cm-cv"), 10) || 0, min_entry_inr: Math.max(0, parseInt(v("cm-min"), 10) || 0), closes_on: v("cm-close") || null };
       t.busy(true); (cid ? db.from("ad_campaigns").update(cr).eq("id", cid) : db.from("ad_campaigns").insert(cr)).then(function (r) { if (r.error) return t.fail(r.error); A.done("Campaign saved."); }, t.fail); return true;
     }
     if (kind === "credit") {

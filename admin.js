@@ -67,7 +67,7 @@
   function render() {
     var app = $("#adm-app");
     if (!S.user) {
-      app.innerHTML = '<form data-form="signin" class="authbar"><label for="si-email">Admin sign-in: enter your email</label><div class="inline"><input type="email" id="si-email" required autocomplete="email" placeholder="you@example.com"><button type="submit" class="btn btn-dark btn-sm">Email me a sign-in link</button></div><p class="hint">We’ll email you a one-time link. Only the admin email can use this page.</p></form>';
+      app.innerHTML = '<form data-form="signin" class="authbar"><label for="si-email">Admin sign-in: enter your email</label><div class="inline"><input type="email" id="si-email" required autocomplete="email" placeholder="you@example.com"></div><div class="inline" style="margin-top:.5rem"><input type="password" id="si-pass" autocomplete="current-password" placeholder="Password (optional)"><button type="submit" class="btn btn-dark btn-sm">Sign in</button></div><p class="hint">Type your password to sign in straight away. Leave it empty and press the button to get a one-time email link instead (Supabase only allows a few of those per hour, so a password is handy). Only the admin email can use this page.</p></form>';
       return;
     }
     if (!S.admin) { app.innerHTML = '<div class="notice warn"><p>This area is only for the Supreme Leader. You’re signed in as <strong>' + esc(S.user.email || "") + '</strong>, which isn’t the admin email. <button type="button" class="linkish" data-act="signout">Sign out</button></p></div>'; return; }
@@ -388,7 +388,11 @@
     function fail(er) { busy(false); var d = $("#dlg-error"); if (d) d.textContent = (er && (er.message || er.msg)) || "Something went wrong."; }
 
     if (kind === "signin") {
-      var email = v("si-email"); busy(true);
+      var email = v("si-email"), pw = $("#si-pass", form) ? $("#si-pass", form).value : ""; busy(true);
+      if (pw) {
+        sb.auth.signInWithPassword({ email: email, password: pw }).then(function (r) { busy(false); if (r.error) return say(/invalid/i.test(r.error.message || "") ? "That email and password don’t match." : errText(r.error), true); });
+        return;
+      }
       sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname } }).then(function (r) {
         busy(false); if (r.error) return say(errText(r.error), true); say("Check your email. We’ve sent a sign-in link to <strong>" + esc(email) + "</strong>. Open it on this device.");
       }); return;

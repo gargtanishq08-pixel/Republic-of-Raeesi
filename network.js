@@ -15,7 +15,7 @@
     });
   }
 
-  var CATEGORIES = ["Technology", "AI", "Blockchain", "Consumer Products", "Design", "Marketing", "Finance", "Operations", "Other"];
+  var CATEGORIES = ["Technology", "AI", "Robotics", "Hardware & IoT", "Cybersecurity", "Blockchain", "SaaS & software", "Gaming", "Fintech", "Finance", "E-commerce", "Consumer Products", "Retail", "Food & beverage", "Agri-tech", "Climate & energy", "Healthcare", "Biotechnology", "Wellness & fitness", "Education", "Ed-tech", "Media & content", "Music & entertainment", "Fashion & lifestyle", "Design", "Marketing", "Sales", "Operations", "Logistics & supply chain", "Manufacturing", "Construction & real estate", "Mobility & automotive", "Aerospace", "Travel & hospitality", "Sports", "Social impact", "Research & science", "Legal & compliance", "Other"];
   var STATUSES = ["Idea", "Prototype", "Building", "Launched"];
   var ROLES = ["Developer", "Designer", "Marketer", "Founder / product", "Finance / operations", "Researcher", "Writer / content", "Other"];
   var AVAIL = ["Not available right now", "A few hours a week", "Part-time", "Full-time"];
@@ -601,6 +601,8 @@
       '<div class="field"><label for="pr-avail">Availability</label><select id="pr-avail"><option value="">Not stated</option>' + AVAIL.map(function (a) { return "<option" + (p.availability === a ? " selected" : "") + ">" + a + "</option>"; }).join("") + "</select></div>" +
       '<div class="field"><label for="pr-links">Links (optional)</label><span class="hint">Portfolio, GitHub or demos, separated by spaces. Shown to whoever can see your profile.</span><textarea id="pr-links" maxlength="500" style="min-height:4rem">' + esc(p.links || "") + "</textarea></div>" +
       '<div class="check"><input type="checkbox" id="pr-open"' + (p.open_to_collab ? " checked" : "") + '><label for="pr-open">Show me in collaborator matches and “open to collaborate” searches</label></div>' +
+      '<div class="check"><input type="checkbox" id="pr-lb"' + (p.show_on_leaderboard ? " checked" : "") + '><label for="pr-lb">Show my name if the Republic publishes a leaderboard (members 18 and over). Otherwise you appear as “a builder of the Republic”.</label></div>' +
+      '<div class="check"><input type="checkbox" id="pr-learn"' + (p.learning_consent ? " checked" : "") + '><label for="pr-learn">Let the Republic learn from what I choose to publish or share in mentorship (members 18 and over). My private details are never used.</label></div>' +
       '<div class="mc-actions"><button type="submit" class="btn btn-dark">' + (live ? "Submit changes" : "Join the Republic") + "</button>" +
       (S.member ? '<button type="button" class="btn btn-line" data-act="delete-account">Delete my profile and posts</button>' : "") + "</div></form>";
   }
@@ -726,7 +728,7 @@
         display_name: val("pr-name"), headline: val("pr-head") || null, city: val("pr-city") || null, bio: val("pr-bio"),
         skills: splitList(val("pr-skills"), 15), skills_wanted: splitList(val("pr-swant"), 15),
         role_tags: checked("pr-role"), roles_wanted: checked("pr-want"), offering: val("pr-offer"), looking_for: val("pr-look"),
-        availability: val("pr-avail") || null, links: val("pr-links"), goals: checked("pr-goal"), visibility: vis, open_to_collab: $("#pr-open").checked
+        availability: val("pr-avail") || null, links: val("pr-links"), goals: checked("pr-goal"), visibility: vis, open_to_collab: $("#pr-open").checked, show_on_leaderboard: $("#pr-lb") ? $("#pr-lb").checked : false, learning_consent: $("#pr-learn") ? $("#pr-learn").checked : false
       };
       busy(true);
       var uploadStep = Promise.resolve(clear ? null : currentPath);

@@ -20,7 +20,7 @@
    ========================================================================== */
 window.RAEESI_MISSIONS = {
 
-  /* ---------------- How points work ---------------- */
+  /* ---------------- How Crowns work ---------------- */
   scale: "Each criterion is scored 0 to 5 by a reviewer: 0 nothing shown, 1 a weak attempt, 2 partly there, 3 solid, 4 strong, 5 outstanding.",
   criteria: [
     { key: "execution",     name: "Execution and functionality",    weight: 25, desc: "Does it work? Can someone see it running, use it, or follow it from start to finish?" },
@@ -30,11 +30,11 @@ window.RAEESI_MISSIONS = {
     { key: "collaboration", name: "Collaboration and reliability",   weight: 10, desc: "Did you communicate, keep commitments, and credit others? Solo builders are scored on reliability." },
     { key: "improvement",   name: "Improvement after feedback",      weight: 10, desc: "Did you listen, revise, and make the work better?" }
   ],
-  passMark: 40,                                    // weighted score out of 100 needed to earn points
+  passMark: 40,                                    // weighted score out of 100 needed to earn Crowns
   difficultyMultiplier: { Easy: 1, Medium: 1.5, Hard: 2 },
   rules: [
-    "Points reward the quality of the work, never popularity. Comments, likes and attention add nothing.",
-    "A submission needs at least 40 out of 100 to earn points. Lower scores still get written feedback.",
+    "Crowns reward the quality of the work, never popularity. Comments, likes and attention add nothing.",
+    "A submission needs at least 40 out of 100 to earn Crowns. Lower scores still get written feedback.",
     "Only your best scored entry for each mission counts, so repeating easy tasks can’t beat real depth.",
     "Harder missions are worth more: Easy ×1, Medium ×1.5, Hard ×2.",
     "Any adjustment up or down needs a written reason that appears in the Ledger.",
@@ -124,6 +124,30 @@ window.RAEESI_MISSIONS = {
       objectives: ["Pick a real use.", "Build it.", "Show where it fails and how you handled it."],
       deliverables: ["Working demo.", "Notes on limits and risks."],
       instructions: ["Submit through the Mission Desk."], opens: "", deadline: "", reviewBy: ""
+    },
+    {
+      id: "M008", number: "VIII", title: "The Honest Pitch", status: "Draft", difficulty: "Medium",
+      categories: ["Entrepreneurship", "Communication"], skills: ["Storytelling", "Pitching"],
+      summary: "Make a five-minute pitch for your idea that is honest about what you know, what you don’t know and what you need.",
+      objectives: ["State the problem and who has it.", "Show what exists today and what you would do differently.", "Say plainly what you don’t know yet and what you need."],
+      deliverables: ["A five-minute video, or a deck of at most ten slides.", "A one-paragraph summary."],
+      instructions: ["Submit through the Mission Desk.", "No fake numbers, fake customers or fake testimonials. Honest gaps score better than invented confidence."], opens: "", deadline: "", reviewBy: ""
+    },
+    {
+      id: "M009", number: "IX", title: "Ten Real Conversations", status: "Draft", difficulty: "Medium",
+      categories: ["Entrepreneurship", "Research"], skills: ["Customer research", "Interviewing"],
+      summary: "Talk to ten real people who might need what you are building, and report what you honestly learned.",
+      objectives: ["Prepare questions that don’t lead people to the answer you want.", "Talk to ten people.", "Write down what surprised you and what you will change."],
+      deliverables: ["Interview notes (names are optional).", "A one-page summary of what changed in your plan."],
+      instructions: ["Submit through the Mission Desk.", "If you are under 18, only speak to people with a parent’s or teacher’s knowledge, and never share personal details."], opens: "", deadline: "", reviewBy: ""
+    },
+    {
+      id: "M010", number: "X", title: "Teach It Forward", status: "Draft", difficulty: "Easy",
+      categories: ["Education", "Community"], skills: ["Teaching", "Communication"],
+      summary: "Teach something you know to someone who doesn’t, and show that they learned it.",
+      objectives: ["Pick a skill you can teach in under an hour.", "Teach it to at least one person.", "Show what they could do afterwards."],
+      deliverables: ["A short write-up or video.", "Evidence of what the learner made or did."],
+      instructions: ["Submit through the Mission Desk.", "Only include a learner’s name or picture if they (or their parent, if under 18) agreed."], opens: "", deadline: "", reviewBy: ""
     }
   ]
 };

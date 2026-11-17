@@ -16,14 +16,16 @@
     { t: "Newsroom",       href: "newsroom.html", page: "newsroom.html" }
   ];
   // Everything else tucked under "More"
+  // Members-only areas (Network, Lounge, Wallet, Ad Bureau...) all live on one page, so the menu stays short
+  var MEMBERS = { t: "Members Only", href: "members.html", page: "members.html", cls: "link-members" };
   var MORE = [
+    MEMBERS,
     { t: "The Four Stages",    href: h("stages") },
     { t: "The Royal Treasury", href: h("treasury") },
     { t: "Funding and schemes", href: "funding.html", page: "funding.html" },
-    { t: "Ad Bureau",         href: "adbureau.html", page: "adbureau.html" },
+    { t: "Royal Archives",     href: "archive.html", page: "archive.html" },
     { t: "Alumni Body",       href: "alumni.html", page: "alumni.html" },
     { t: "Sing the Anthem",   href: "anthem.html", page: "anthem.html" },
-    { t: "Royal Archives",     href: "archive.html", page: "archive.html" },
     { t: "Sponsor the Republic", href: sponsorHref, page: "sponsors.html", cls: "more-sponsor" },
     { t: "Privacy",            href: h("trust") }
   ];
@@ -50,7 +52,8 @@
           '<a class="btn btn-ghost btn-sm btn-sponsor" href="' + sponsorHref + '">Sponsor</a>' +
           '<a class="btn btn-gold btn-sm cta-top" href="' + h("petition") + '" data-apply>Submit Your Petition</a>' +
           '<details class="menu" id="site-menu"><summary aria-label="Open the menu"><span class="menu-bars" aria-hidden="true"></span><span class="menu-label">Menu</span></summary>' +
-            '<nav class="menu-panel" aria-label="Menu">' + allHtml +
+            '<nav class="menu-panel" aria-label="Menu">' + MAIN.map(linkHtml).join("") + linkHtml(MEMBERS) +
+              '<details class="menu-more"><summary>More</summary>' + MORE.filter(function (l) { return l !== MEMBERS; }).map(function (l) { var c = Object.assign({}, l); delete c.cls; return linkHtml(c); }).join("") + "</details>" +
               '<a class="menu-cta" href="' + h("petition") + '" data-apply>Submit Your Petition</a>' +
             "</nav></details>" +
         "</div>" +

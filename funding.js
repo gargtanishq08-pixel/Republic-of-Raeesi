@@ -9,6 +9,24 @@
   var cfg = window.RAEESI_CONFIG || {}, sbc = window.RAEESI_SUPABASE || {};
   var SCHEMES = [];
 
+  /* A starter list of official sites, shown only until you have published checked schemes in the admin desk (Schemes tab).
+     These are links to the official websites, nothing more: no amounts, no deadlines, no promises. */
+  var STARTER = [
+    { name: "Startup India portal", agency: "Department for Promotion of Industry and Internal Trade (DPIIT)", level: "Central", kind: "Other", link: "https://www.startupindia.gov.in", summary: "The official portal for startup recognition, schemes, funding information and events." },
+    { name: "Startup India Seed Fund Scheme", agency: "DPIIT", level: "Central", kind: "Grant", link: "https://seedfund.startupindia.gov.in", summary: "Seed support for early-stage startups, routed through selected incubators." },
+    { name: "Fund of Funds for Startups", agency: "SIDBI", level: "Central", kind: "Equity / fund", link: "https://www.sidbi.in", summary: "Government-backed funds that invest in venture funds, which in turn invest in startups." },
+    { name: "Biotechnology Ignition Grant (BIG)", agency: "BIRAC", level: "Central", kind: "Grant", link: "https://www.birac.nic.in", summary: "Early-stage support for biotechnology ideas." },
+    { name: "Atal Innovation Mission", agency: "NITI Aayog", level: "Central", kind: "Incubation", link: "https://aim.gov.in", summary: "Programmes for students, innovators and incubators." },
+    { name: "Department of Science and Technology programmes", agency: "Department of Science and Technology", level: "Central", kind: "Incubation", link: "https://dst.gov.in", summary: "Science and technology innovation, incubation and entrepreneurship programmes." },
+    { name: "MeitY Startup Hub", agency: "Ministry of Electronics and IT", level: "Central", kind: "Incubation", link: "https://msh.meity.gov.in", summary: "Support for technology startups." },
+    { name: "Ministry of MSME schemes", agency: "Ministry of MSME", level: "Central", kind: "Subsidy", link: "https://msme.gov.in", summary: "Support and subsidy schemes for micro, small and medium enterprises." },
+    { name: "Stand-Up India", agency: "SIDBI / Department of Financial Services", level: "Central", kind: "Loan", link: "https://www.standupmitra.in", summary: "Bank loans for women and SC/ST entrepreneurs setting up new enterprises." },
+    { name: "MUDRA loans", agency: "MUDRA", level: "Central", kind: "Loan", link: "https://www.mudra.org.in", summary: "Small business loans through banks and other lenders." },
+    { name: "Credit guarantee for micro and small enterprises (CGTMSE)", agency: "CGTMSE", level: "Central", kind: "Loan", link: "https://www.cgtmse.in", summary: "Guarantee cover that helps small businesses get collateral-free loans." },
+    { name: "Kerala Startup Mission", agency: "Government of Kerala", level: "State", state: "Kerala", kind: "Incubation", link: "https://startupmission.kerala.gov.in", summary: "Startup support in Kerala. Many other states run their own startup missions too: search your state’s name with “startup policy”." }
+  ].map(function (s, i) { return { id: "starter" + i, name: s.name, agency: s.agency, level: s.level, state: s.state || null, kind: s.kind, stage: [], summary: s.summary, eligibility: "", amount_text: "", deadline: null, status: "Check official site", link: s.link, last_verified: null, tags: [], published: true, starter: true }; });
+
+
   function stale(s) { if (!s.last_verified) return true; return (Date.now() - new Date(s.last_verified + "T00:00:00")) > 90 * 864e5; }
   function statusClass(st) { return st === "Open" || st === "Rolling" ? "st-open" : st === "Upcoming" ? "st-in-progress" : st === "Closed" ? "st-archived" : "st-under-review"; }
 
@@ -38,17 +56,23 @@
 
   /* ---------- schemes from the database ---------- */
   function notice(html) { grid.innerHTML = '<div class="notice"><p>' + html + "</p></div>"; }
-  if (!sbc.url || !sbc.anonKey) notice("The schemes list is opening soon.");
-  else if (!window.supabase || !window.supabase.createClient) notice("The schemes couldn’t load (a needed script was blocked). Please reload.");
+  function useStarter() {
+    var kinds = STARTER.map(function (s) { return s.kind; }).filter(function (k, i, a) { return a.indexOf(k) === i; }).sort();
+    $("fs-kind").innerHTML = '<option value="">Any type</option>' + kinds.map(function (k) { return "<option>" + esc(k) + "</option>"; }).join("");
+    var note = document.createElement("div"); note.className = "notice"; note.innerHTML = "<p><strong>Starter list.</strong> These are links to official government sites to help you start. Detailed, checked entries (amounts, who can apply, deadlines) are added here by the Supreme Leader. Always confirm everything on the official site.</p>";
+    grid.parentNode.insertBefore(note, grid); render();
+  }
+  if (!sbc.url || !sbc.anonKey) { SCHEMES = STARTER; useStarter(); }
+  else if (!window.supabase || !window.supabase.createClient) { SCHEMES = STARTER; useStarter(); }
   else {
     var sb = window.supabase.createClient(sbc.url, sbc.anonKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     sb.from("schemes").select("*").order("name", { ascending: true }).then(function (r) {
-      if (r.error) return notice("The schemes couldn’t be loaded just now. Please try again in a little while.");
-      SCHEMES = r.data || [];
+      if (r.error) { SCHEMES = STARTER; useStarter(); return; }
+      SCHEMES = r.data || []; if (!SCHEMES.length) { SCHEMES = STARTER; useStarter(); return; }
       var kinds = SCHEMES.map(function (s) { return s.kind; }).filter(function (k, i, a) { return a.indexOf(k) === i; }).sort();
       $("fs-kind").innerHTML = '<option value="">Any type</option>' + kinds.map(function (k) { return "<option>" + esc(k) + "</option>"; }).join("");
       render();
-    }, function () { notice("The schemes couldn’t be loaded just now. Please check your connection."); });
+    }, function () { SCHEMES = STARTER; useStarter(); });
   }
 
   /* ---------- live notifications (free, from official feeds) ---------- */

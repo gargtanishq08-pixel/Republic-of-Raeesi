@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Certificate — Republic of Raeesi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .cert-page { max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; }
+    .cert { position: relative; background: #fffaf0; border: 10px double var(--gold-dark); padding: clamp(1.5rem, 5vw, 3.5rem); text-align: center; color: var(--burgundy-900); box-shadow: 0 10px 30px rgba(36,5,16,.25); }
+    .cert img.seal { width: 96px; height: auto; margin: 0 auto .5rem; display: block; }
+    .cert .cert-kicker { font-family: var(--font-ceremony); letter-spacing: .3em; text-transform: uppercase; font-size: .8rem; color: var(--crimson); margin: 0; }
+    .cert h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.8rem, 5vw, 3rem); margin: .6rem 0; }
+    .cert .cert-name { font-family: var(--font-display); font-style: italic; font-size: clamp(1.6rem, 4.5vw, 2.6rem); margin: 1.2rem 0; border-bottom: 2px solid var(--gold-dark); display: inline-block; padding: 0 1.5rem .2rem; }
+    .cert .cert-title { font-size: 1.3rem; font-weight: 700; margin: .5rem 0; }
+    .cert .cert-sign { margin-top: 2.2rem; display: flex; justify-content: space-around; gap: 1rem; flex-wrap: wrap; font-size: .95rem; }
+    .cert .cert-sign span { border-top: 1.5px solid var(--burgundy-900); padding-top: .3rem; min-width: 12rem; }
+    .cert .cert-fine { font-size: .8rem; color: #6a5a50; margin-top: 1.5rem; }
+    .cert-actions { text-align: center; margin: 1rem 0; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+    @media print { .cert-actions, .skip, .site-nav { display: none !important; } body { background: #fff; } .cert { box-shadow: none; } .cert-page { margin: 0; max-width: none; } }
+  </style>
+</head>
+<body>
+  <main class="cert-page" id="main">
+    <div id="ct-status" role="status" aria-live="polite"></div>
+    <div id="ct-root"><p class="file-meta">Loading your certificate…</p></div>
+    <p class="cert-actions"><a class="btn btn-line btn-sm" href="wallet.html">Back to my wallet</a></p>
+  </main>
+  <script src="config.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <script src="certificate.js"></script>
+</body>
+</html>

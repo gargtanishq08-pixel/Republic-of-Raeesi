@@ -15,6 +15,8 @@
     if (/approved pitch/i.test(m)) return "Only an approved ad pitch of yours can join a campaign.";
     if (/not open/i.test(m)) return "That campaign isn’t open for pitches any more.";
     if (/duplicate key/i.test(m)) return "That pitch has already joined this campaign.";
+    if (/minimum for this campaign/i.test(m)) return m;
+    if (/guardian.s name/i.test(m)) return "Please give your guardian’s name and a way to reach them.";
     if (/row-level security/i.test(m)) return "That isn’t allowed. Ad pitches are for approved members aged 18 and over.";
     if (/check constraint/i.test(m)) return "One of your answers is too short, too long, or not in the right format.";
     return "Something went wrong" + (m ? " (" + m + ")" : "") + ". Please try again.";
@@ -27,7 +29,8 @@
   var CHANNELS = ["Billboard", "Prime-location banner", "Metro / transit", "Gym / fitness centre", "School display", "College campus", "Coaching centre", "Cafe / restaurant", "Mall / retail", "Residential society", "Print / flyers", "Digital / social", "Event / exhibition", "Other"];
   var S = { sb: null, user: null, member: null, wallet: { balance: 0, earned: 0 }, ledger: [], perks: [], pitches: [], camps: [], pool: {}, entries: [], loaded: false };
   var MINOR = ["14–15", "16–17"];
-  function ok() { return !!(S.member && S.member.approved && !S.member.suspended && MINOR.indexOf(S.member.age_band) === -1); }
+  function teenMember() { return !!(S.member && MINOR.indexOf(S.member.age_band) > -1); }
+  function ok() { return !!(S.member && S.member.approved && !S.member.suspended && (!teenMember() || S.member.guardian_verified)); }
 
   function resizeJpeg(file, maxEdge) {
     return new Promise(function (resolve, reject) {
@@ -68,19 +71,26 @@
     } else {
       html = '<div class="authbar signed"><span class="who">Signed in as <strong>' + esc(S.user.email || "") + '</strong></span> <button type="button" class="linkish" data-a="signout">Sign out</button></div>';
       if (!S.member) html += '<div class="notice"><p>You haven’t joined the Builders’ Network yet. <a href="network.html">Create your profile</a> first, then come back.</p></div>';
-      else if (MINOR.indexOf(S.member.age_band) > -1) html += '<div class="notice"><p>The Ad Bureau is for members aged 18 and over, because it involves agreements about money. You can still earn ' + esc(APP.currency) + ' through Royal Missions.</p></div>';
+      else if (teenMember() && !S.member.guardian_verified) html += guardianBox();
       else if (!S.member.approved) html += '<div class="notice"><p>The Ad Bureau opens once the Supreme Leader has approved your membership. Create your profile in the <a href="network.html">Builders’ Network</a> if you haven’t.</p></div>';
       else html += walletHtml() + pitchesHtml() + campsHtml();
     }
     app.innerHTML = html;
   }
 
+  function guardianBox() {
+    var m = S.member || {};
+    if (m.guardian_name) return '<div class="notice"><p>Thank you. The Supreme Leader is contacting your parent or guardian (<strong>' + esc(m.guardian_name) + "</strong>) to confirm. The Ad Bureau opens for you once that’s done.</p></div>";
+    return '<form data-f="guardian" class="shell"><p><strong>Under 18?</strong> Ads involve money and agreements, so a parent or guardian has to be involved: they are the one who agrees, and who signs any agreement. Give their details and the Supreme Leader will contact them to confirm. Their details stay private.</p>' +
+      '<div class="row-2"><div class="field"><label for="gd-name">Guardian’s name *</label><input type="text" id="gd-name" required maxlength="80"></div><div class="field"><label for="gd-contact">Their phone or email *</label><input type="text" id="gd-contact" required maxlength="120"></div></div>' +
+      '<p class="field-error" id="gd-err" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Send for verification</button></form>';
+  }
   function walletHtml() {
     var lv = levelFor(S.wallet.earned), perk = S.perks.filter(function (p) { return p.level === lv; })[0] || { perks: [], ad_discount_pct: 0 };
     var next = levels().filter(function (l) { return l.min > S.wallet.earned; })[0];
     return '<div class="panel"><h3>Your ' + esc(APP.currency) + "</h3><p><strong>" + S.wallet.balance + "</strong> " + esc(APP.currency) + " to spend &middot; <strong>" + S.wallet.earned + "</strong> earned &middot; level <strong>" + esc(lv) + "</strong>" + (next ? " (" + (next.min - S.wallet.earned) + " more earned to reach " + esc(next.name) + ")" : "") + "</p>" +
       ((perk.perks || []).length || perk.ad_discount_pct ? "<p><strong>Your level’s perks:</strong> " + esc((perk.perks || []).join("; ")) + (perk.ad_discount_pct ? (perk.perks.length ? "; " : "") + perk.ad_discount_pct + "% off ad contributions (confirmed by the Supreme Leader per campaign)" : "") + "</p>" : '<p class="file-meta">No perks have been set for your level yet.</p>') +
-      (S.ledger.length ? '<details><summary>Recent activity</summary>' + S.ledger.map(function (e) { return '<p class="file-meta">' + esc(new Date(e.created_at).toLocaleDateString("en-IN")) + " &middot; " + (e.amount > 0 ? "+" : "") + e.amount + " &middot; " + esc(e.kind) + (e.reason ? " &middot; " + esc(e.reason) : "") + "</p>"; }).join("") + "</details>" : "") + "</div>";
+      '<p><a href="wallet.html">Open your wallet and the Crown Shop</a></p>' + (S.ledger.length ? '<details><summary>Recent activity</summary>' + S.ledger.map(function (e) { return '<p class="file-meta">' + esc(new Date(e.created_at).toLocaleDateString("en-IN")) + " &middot; " + (e.amount > 0 ? "+" : "") + e.amount + " &middot; " + esc(e.kind) + (e.reason ? " &middot; " + esc(e.reason) : "") + "</p>"; }).join("") + "</details>" : "") + "</div>";
   }
 
   function pitchesHtml() {
@@ -98,7 +108,7 @@
     return "<h3>Campaigns</h3>" + (S.camps.length ? S.camps.map(function (c) {
       var pool = S.pool[c.id] || { entries: 0, total_inr: 0 }, mine = myEntry(c.id), open = c.status === "Open for pitches" && (!c.closes_on || new Date(c.closes_on + "T23:59:59") >= new Date());
       var inner = '<div class="entry"><p><strong>' + esc(c.title) + "</strong> &middot; " + esc(c.channel) + (c.venue ? " &middot; " + esc(c.venue) : "") + ' <span class="badge st-in-progress">' + esc(c.status) + "</span></p>" + (c.description ? "<p>" + esc(c.description) + "</p>" : "") +
-        '<p class="file-meta">' + (c.area_sqft ? esc(c.area_sqft) + " sq ft &middot; " : "") + (c.cost_inr != null ? "cost " + money(c.cost_inr) + " &middot; " : "") + "1 " + esc(APP.currencyOne) + " = " + money(c.credit_value_inr) + " here &middot; " + pool.entries + " pitch(es) so far" + (c.closes_on ? " &middot; closes " + esc(c.closes_on) : "") + "</p>";
+        '<p class="file-meta">' + (c.area_sqft ? esc(c.area_sqft) + " sq ft &middot; " : "") + (c.cost_inr != null ? "cost " + money(c.cost_inr) + " &middot; " : "") + (c.min_entry_inr ? "minimum entry " + money(c.min_entry_inr) + " &middot; " : "") + "1 " + esc(APP.currencyOne) + " = " + money(c.credit_value_inr) + " here &middot; " + pool.entries + " pitch(es) so far" + (c.closes_on ? " &middot; closes " + esc(c.closes_on) : "") + "</p>";
       if (mine) {
         var total = Number(pool.total_inr) || eff(mine, c), share = total ? eff(mine, c) / total * 100 : 0;
         inner += '<p class="why"><strong>You’re in.</strong> ' + esc(mine.status) + " &middot; cash " + money(mine.cash_inr) + " + " + mine.credits + " " + esc(APP.currency) + " &middot; projected share <strong>" + share.toFixed(1) + "%</strong>" + (c.area_sqft ? " (about " + (c.area_sqft * share / 100).toFixed(1) + " sq ft)" : "") + ". A projection, not a promise: shares can change as others join." + (mine.decision_note ? "<br><strong>Note:</strong> " + esc(mine.decision_note) : "") + '</p><div class="mc-actions"><button type="button" class="btn btn-line btn-sm" data-a="leave" data-id="' + esc(mine.id) + '">Withdraw from this campaign</button></div>';
@@ -152,10 +162,13 @@
     var f = e.target.closest("form[data-f]"); if (!f || !S.sb) return; e.preventDefault();
     var kind = f.getAttribute("data-f"), sb = S.sb, uid = S.user && S.user.id;
     if (kind === "signin") { var em = $("ab-email").value.trim(); sb.auth.signInWithOtp({ email: em, options: { emailRedirectTo: location.origin + location.pathname } }).then(function (r) { if (r.error) return say(esc(fr(r.error)), true); say("Check your email. We’ve sent a sign-in link to <strong>" + esc(em) + "</strong>."); }); return; }
+    if (kind === "guardian") { sb.rpc("submit_guardian", { p_name: $("gd-name").value, p_contact: $("gd-contact").value }).then(function (r) { if (r.error) { $("gd-err").textContent = fr(r.error); return; } say(esc(r.data || "Thank you.")); refresh(); }); return; }
     if (kind === "join") {
       var cid = f.getAttribute("data-camp"), err = $("jn-e-" + cid); err.textContent = "";
       var cash = parseInt($("jn-c-" + cid).value, 10) || 0, k = parseInt($("jn-k-" + cid).value, 10) || 0;
       if (cash < 0 || k < 0) { err.textContent = "Please use zero or more."; return; }
+      var camp = S.camps.filter(function (x) { return x.id === cid; })[0], value = cash + k * ((camp && camp.credit_value_inr) || 0);
+      if (camp && value < (camp.min_entry_inr || 0)) { err.textContent = "The minimum for this campaign is " + money(camp.min_entry_inr) + " (cash plus " + APP.currency + "). Yours comes to " + money(value) + "."; return; }
       Array.prototype.forEach.call(f.querySelectorAll("button"), function (b) { b.disabled = true; });
       sb.from("ad_entries").insert({ campaign_id: cid, pitch_id: $("jn-p-" + cid).value, owner: uid, cash_inr: cash, credits: k }).then(function (r) {
         if (r.error) { Array.prototype.forEach.call(f.querySelectorAll("button"), function (b) { b.disabled = false; }); err.textContent = fr(r.error); return; }

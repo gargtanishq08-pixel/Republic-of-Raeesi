@@ -129,7 +129,7 @@
     return '<article class="mission-card' + (big ? " big" : "") + '">' +
       '<div class="mc-head"><span class="mc-num">Mission ' + esc(m.number) + '</span><span class="badge ' + stClass(m.status) + '">' + esc(m.status) + "</span></div>" +
       "<h3>" + esc(m.title) + "</h3>" +
-      '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " points) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
+      '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " Crowns) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
       compLine(m) + sponsorLine(m) +
       "<p>" + esc(m.summary) + "</p>" +
       (dates.length ? '<p class="mc-dates">' + esc(dates.join(" · ")) + "</p>" : "") +
@@ -178,7 +178,7 @@
       '<button type="button" class="dlg-close" data-close aria-label="Close">&times;</button>' +
       '<p class="mc-num">Mission ' + esc(m.number) + ' &middot; <span class="badge ' + stClass(m.status) + '">' + esc(m.status) + "</span></p>" +
       '<h2 id="md-title" class="md-title">' + esc(m.title) + "</h2>" +
-      '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " points) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
+      '<p class="mc-meta">Difficulty: <strong>' + esc(m.difficulty) + "</strong> (×" + mult + " Crowns) &middot; " + esc((m.categories || []).join(", ")) + "</p>" +
       compLine(m) + sponsorLine(m) +
       "<p>" + esc(m.summary) + "</p>" +
       (m.opens || m.deadline || m.reviewBy ? '<p class="mc-dates">' + esc([m.opens && "Opens " + fmtDate(m.opens), m.deadline && "Deadline " + fmtDate(m.deadline), m.reviewBy && "Results by " + fmtDate(m.reviewBy)].filter(Boolean).join(" · ")) + "</p>" : "") +
@@ -186,7 +186,7 @@
       "<h3>What to hand in</h3><ul>" + li(m.deliverables) + "</ul>" +
       "<h3>Skills that help</h3><ul>" + li(m.skills) + "</ul>" +
       "<h3>How to take part</h3><ol>" + li(m.instructions) + "</ol>" +
-      '<h3>How it’s scored</h3><p>Six criteria, out of 100, shown in full under <a href="#scoring" data-close-link>How scoring works</a>. You need at least ' + M.passMark + " to earn points.</p>" +
+      '<h3>How it’s scored</h3><p>Six criteria, out of 100, shown in full under <a href="#scoring" data-close-link>How scoring works</a>. You need at least ' + M.passMark + " to earn Crowns.</p>" +
       '<div class="mc-actions">' +
         (acceptsSubmissions(m) ? '<button type="button" class="btn btn-line btn-sm" data-desk-tab="interest" data-mission="' + esc(m.id) + '">Register interest</button><button type="button" class="btn btn-gold btn-sm" data-desk-tab="submit" data-mission="' + esc(m.id) + '">Submit your project</button>' : "") +
         '<button type="button" class="btn btn-line btn-sm" data-close>Close</button></div>';
@@ -217,9 +217,9 @@
     var ex = { execution: 4, originality: 3, quality: 4, documentation: 3, collaboration: 5, improvement: 4 };
     var r = entryPoints({ scores: ex, difficulty: "Medium", adj: 0 });
     $("#sums-text").innerHTML = "Weighted score = each score ÷ 5 × its weight, added up, out of 100. If it reaches " + M.passMark +
-      ", points = weighted score × the difficulty multiplier, rounded. <strong>Example:</strong> scores of 4, 3, 4, 3, 5, 4 give " +
-      r.weighted + " out of 100. On a Medium mission (×" + r.mult + ") that’s " + r.base + " points.";
-    $("#levels-list").innerHTML = M.levels.map(function (l) { return "<li><strong>" + esc(l.name) + "</strong>: " + l.min + "+ points</li>"; }).join("");
+      ", Crowns = weighted score × the difficulty multiplier, rounded. <strong>Example:</strong> scores of 4, 3, 4, 3, 5, 4 give " +
+      r.weighted + " out of 100. On a Medium mission (×" + r.mult + ") that’s " + r.base + " Crowns.";
+    $("#levels-list").innerHTML = M.levels.map(function (l) { return "<li><strong>" + esc(l.name) + "</strong>: " + l.min + "+ Crowns</li>"; }).join("");
   }
 
   /* ======================================================================
@@ -559,10 +559,10 @@
       return '<li><span>' + esc(c.name) + '</span><span class="sc"><span class="sc-bar" aria-hidden="true"><i style="width:' + (s * 20) + '%"></i></span><b>' + s + "/5</b></span></li>";
     }).join("");
     var sum = "Weighted score <b>" + r.weighted + "/100</b>. " +
-      (r.passed ? "That passes the " + M.passMark + " mark, so points are " + r.weighted + " × " + r.mult + " = <b>" + r.base + "</b>."
-                : "That is under the " + M.passMark + " pass mark, so it earns <b>0</b> points. The feedback still counts.") +
+      (r.passed ? "That passes the " + M.passMark + " mark, so Crowns are " + r.weighted + " × " + r.mult + " = <b>" + r.base + "</b>."
+                : "That is under the " + M.passMark + " pass mark, so it earns <b>0</b> Crowns. The feedback still counts.") +
       (r.adj ? " Adjustment <b>" + (r.adj > 0 ? "+" : "") + r.adj + "</b>" + (e.adjReason ? " (" + esc(e.adjReason) + ")" : "") + "." : "") +
-      " Total for this entry: <b>" + r.total + " points</b>. " +
+      " Total for this entry: <b>" + r.total + " Crowns</b>. " +
       (item.counts ? "<em>This is the entry that counts for this mission.</em>" : "<em>Not counted: a higher-scoring entry exists for this mission.</em>");
     return '<div class="entry">' +
       "<h4>" + esc(missionLabel(e.mission)) + " &middot; " + esc(e.project) + "</h4>" +
@@ -589,10 +589,10 @@
     host.innerHTML = toolbar + '<div class="builder-list">' + shown.map(function (b) {
       var entries = b.entries.filter(function (i) { return !ledgerMission || i.e.mission === ledgerMission; });
       return '<article class="builder-card"><div class="bc-head"><h3>' + esc(b.name) + '</h3><span class="badge level">' + esc(b.level) + "</span></div>" +
-        '<p class="bc-stats"><strong>' + b.points + "</strong> points &middot; " + b.completed + " mission" + (b.completed === 1 ? "" : "s") + " completed &middot; " + b.entries.length + " scored " + (b.entries.length === 1 ? "entry" : "entries") + "</p>" +
+        '<p class="bc-stats"><strong>' + b.points + "</strong> Crowns &middot; " + b.completed + " mission" + (b.completed === 1 ? "" : "s") + " completed &middot; " + b.entries.length + " scored " + (b.entries.length === 1 ? "entry" : "entries") + "</p>" +
         "<details><summary>See exactly why</summary>" + entries.map(entryHtml).join("") + "</details></article>";
     }).join("") + "</div>" +
-    '<p class="file-meta">Builders are listed by points only to show the record. Points never decide funding on their own.</p>';
+    '<p class="file-meta">Builders are listed by Crowns only to show the record. Crowns never decide funding on their own.</p>';
   }
 
   function renderPublic() {
