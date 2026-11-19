@@ -729,3 +729,10 @@ a.sp-card:hover { border-color: var(--crimson); }
   .sponsor-tab a strong { font-size: .72rem; }
   .sponsor-tab button { width: 2.2rem; }
 }
+
+/* ---------- Lounge tabs scroll on phones; games ---------- */
+.lg-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.lg-tabs .tab { white-space: nowrap; flex: 0 0 auto; }
+.game .opt { margin: .6rem 0; padding: .4rem .6rem; border: 1px solid var(--parchment-deep); }
+.game .opt.mine { border-color: var(--gold-dark); background: #fbf3dc; }
+.game .opt p { margin: 0 0 .25rem; }

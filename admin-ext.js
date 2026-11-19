@@ -302,7 +302,7 @@
     Promise.all([sb().from("crown_offers").select("*").order("sort_order", { ascending: true }), sb().from("crown_purchases").select("*").order("created_at", { ascending: false }), members(), sb().from("app_settings").select("*").eq("id", 1).maybeSingle(), sb().from("crown_exchange").select("*").order("created_at", { ascending: false })]).then(function (rs) {
       if (rs[0].error) throw rs[0].error; if (rs[1].error) throw rs[1].error;
       C.offers = rs[0].data || []; C.purch = rs[1].data || []; C.mem = rs[2];
-      C.settings = (rs[3] && rs[3].data) || { crown_rate_inr: 5, exchange_enabled: false, exchange_min_inr: 100, ad_min_inr: 500, auto_approve_adults: true, exchange_instructions: "" }; C.exch = (rs[4] && rs[4].data) || [];
+      C.settings = (rs[3] && rs[3].data) || { crown_rate_inr: 5, exchange_enabled: false, exchange_min_inr: 100, ad_min_inr: 500, auto_approve_adults: false, exchange_instructions: "" }; C.exch = (rs[4] && rs[4].data) || [];
       var open = C.purch.filter(function (p) { return p.status === "Requested"; });
       host.innerHTML = settingsPanel() + exchangePanel() + '<div class="mc-actions" style="margin-top:0"><button type="button" class="btn btn-gold btn-sm" data-act="new-offer">Add an offer</button></div>' +
         '<p class="file-meta">Offers members can buy with Crowns. Only offer things you will really deliver. Members see an offer only while it is switched on. Crowns have no cash value.</p>' +
@@ -324,7 +324,7 @@
       fld("sx-admin", "Smallest value of one ad entry (₹)", '<input type="number" id="sx-admin" min="0" value="' + esc(s.ad_min_inr) + '">', "Used as the starting minimum for new campaigns (you can set each campaign's own minimum too). ₹500 = 100 Crowns at the default rate.") +
       fld("sx-ins", "How to pay (shown to members when the Exchange is open)", ta("sx-ins", s.exchange_instructions || "", 3), "For example your UPI ID or bank details. Only put this in once you have a proper account for it.") +
       chkb("sx-on", "<strong>Open the Currency Exchange.</strong> Leave this OFF until your current account and registered business are ready.", s.exchange_enabled) +
-      chkb("sx-auto", "Approve adults automatically when they join the Network (under-18s always wait for you and a guardian)", s.auto_approve_adults) +
+      chkb("sx-auto", "Approve adults automatically when they join the Network. Leave this OFF to approve everyone yourself (under-18s always wait for you and a guardian).", s.auto_approve_adults) +
       '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Save settings</button></form></details>';
   }
   function exchangePanel() {
@@ -351,10 +351,10 @@
      ====================================================================== */
   A.addTab("community", "Community", function (host) {
     var view = C.cview || "reports";
-    var nav = '<div class="filters" role="group" aria-label="Community sections">' + [["reports", "Reports"], ["messages", "Messages"], ["wall", "Recognition Wall"], ["events", "Gatherings"], ["rooms", "Rooms"], ["stamps", "Stamps"]].map(function (t) {
+    var nav = '<div class="filters" role="group" aria-label="Community sections">' + [["reports", "Reports"], ["messages", "Messages"], ["wall", "Recognition Wall"], ["events", "Gatherings"], ["games", "Games"], ["challenges", "Challenges"], ["seed", "Seed Month"], ["rooms", "Rooms"], ["stamps", "Stamps"]].map(function (t) {
       return '<button type="button" class="chip" data-act="cm-view" data-id="' + t[0] + '" aria-pressed="' + (view === t[0]) + '">' + t[1] + "</button>"; }).join("") + "</div>";
     var body = document.createElement("div"); host.innerHTML = nav; host.appendChild(body);
-    ({ reports: cmReports, messages: cmMessages, wall: cmWall, events: cmEvents, rooms: cmRooms, stamps: cmStamps }[view])(body);
+    ({ reports: cmReports, messages: cmMessages, wall: cmWall, events: cmEvents, games: cmGames, challenges: cmChallenges, seed: cmSeed, rooms: cmRooms, stamps: cmStamps }[view])(body);
   });
   function snip(t) { t = String(t || ""); return esc(t.length > 160 ? t.slice(0, 160) + "…" : t); }
   function cmReports(host) {
@@ -393,6 +393,38 @@
     return '<div class="entry"><p><strong>' + esc(x.title) + "</strong> &middot; " + esc(x.kind) + " &middot; " + fmt(x.starts_at) + " &middot; hosted by " + esc(x.creator_name || "?") + " &middot; " + esc(x.age_group) + ' circle <span class="badge st-in-progress">' + esc(x.status) + "</span></p>" + (x.description ? "<p>" + snip(x.description) + "</p>" : "") +
       '<div class="mc-actions">' + (x.status === "Pending" ? act("Approve", "cm-ev", x.id, "btn-dark", ' data-do="Listed"') + act("Reject", "cm-ev", x.id, "btn-line", ' data-do="Rejected"') : "") + (x.status === "Listed" ? act("Cancel", "cm-ev", x.id, "btn-line", ' data-do="Cancelled"') : "") + "</div></div>";
   }
+
+  function cmGames(host) {
+    sb().from("game_prompts").select("*").order("sort_order", { ascending: true }).then(function (r) {
+      if (r.error) throw r.error; C.prompts = r.data || [];
+      host.innerHTML = '<p class="file-meta">Ice-breakers, would-you-rathers and founder dilemmas shown in the Lounge. Switch any off, or add your own.</p>' +
+        '<form data-form="prompt" class="shell"><div class="row-2">' + fld("pr-kind", "Type", sel("pr-kind", [["icebreaker", "Ice-breaker (a written answer)"], ["wyr", "Would you rather (2 to 5 choices)"], ["dilemma", "Founder dilemma (choices with notes)"]], "icebreaker")) + fld("pr-title", "Title / question *", inp("pr-title", "", 'required maxlength="160"')) + "</div>" +
+        fld("pr-body", "Extra detail (optional)", inp("pr-body", "", 'maxlength="600"')) + fld("pr-opts", "Choices (one per line; for dilemmas write: choice | what to weigh)", ta("pr-opts", "", 4), "Leave empty for an ice-breaker.") +
+        '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Add game</button></form>' +
+        C.prompts.map(function (p) { return '<div class="entry"><p><strong>' + esc(p.title) + "</strong> &middot; " + esc(p.kind) + (p.active ? ' <span class="badge st-open">On</span>' : ' <span class="badge st-archived">Off</span>') + '</p><div class="mc-actions">' + act(p.active ? "Switch off" : "Switch on", "cm-prompt-toggle", p.id) + act("Delete", "cm-prompt-del", p.id) + "</div></div>"; }).join("");
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmChallenges(host) {
+    sb().from("challenges").select("*").order("created_at", { ascending: false }).limit(100).then(function (r) {
+      if (r.error) throw r.error; C.chals = r.data || [];
+      host.innerHTML = '<p class="file-meta">Challenges members have started. Hide or remove anything that doesn’t belong.</p>' + (C.chals.length ? C.chals.map(function (c) {
+        return '<div class="entry"><p><strong>' + esc(c.title) + "</strong> &middot; " + esc(c.kind) + " &middot; by " + esc(c.creator_name || "?") + " &middot; " + esc(c.age_group) + " circle &middot; " + esc(c.status) + (c.hidden ? ' <span class="badge st-archived">Hidden</span>' : "") + "</p><p>" + snip(c.description) + '</p><div class="mc-actions">' + act(c.hidden ? "Unhide" : "Hide", "cm-chal-hide", c.id) + (c.status !== "Removed" ? act("Remove", "cm-chal-remove", c.id) : "") + "</div></div>"; }).join("") : '<p class="file-meta">No challenges yet.</p>');
+    }).catch(function (er) { warn(host, er); });
+  }
+  function cmSeed(host) {
+    Promise.all([sb().from("seed_rounds").select("*").order("created_at", { ascending: false }), sb().from("seed_ideas").select("*").order("created_at", { ascending: false }), sb().from("seed_votes").select("*")]).then(function (rs) {
+      if (rs[0].error) throw rs[0].error; C.rounds = rs[0].data || []; C.ideas = rs[1].data || []; var votes = {}; (rs[2].data || []).forEach(function (v) { votes[v.idea_id] = (votes[v.idea_id] || 0) + 1; });
+      host.innerHTML = '<div class="panel"><p><strong>Seed Month.</strong> Members share ideas (Submissions), then vote (Voting), then you close the round (Closed) and members see the tally. <strong>Votes are interest, never a funding decision.</strong> You decide funding separately. Shortlist ideas here as you review them.</p></div>' +
+        '<form data-form="round" class="shell"><div class="row-2">' + fld("rd-title", "New round title *", inp("rd-title", "", 'required maxlength="100" placeholder="e.g. Seed Month, December"')) + fld("rd-votes", "Votes each member gets", '<input type="number" id="rd-votes" min="1" max="10" value="3">') + "</div>" +
+        fld("rd-desc", "What this round is for", ta("rd-desc", "", 3)) + '<p class="field-error" id="dlg-error" role="alert"></p><button type="submit" class="btn btn-dark btn-sm">Create round (as a draft)</button></form>' +
+        C.rounds.map(function (r) {
+          var ideas = C.ideas.filter(function (i) { return i.round_id === r.id; });
+          return '<div class="entry"><h3>' + esc(r.title) + ' <span class="badge st-in-progress">' + esc(r.status) + "</span></h3><p class=\"file-meta\">" + r.votes_per_member + " votes each &middot; " + ideas.length + " ideas</p><div class=\"mc-actions\">" + ["Draft", "Submissions", "Voting", "Closed"].map(function (st) { return r.status === st ? "" : act("Move to " + st, "cm-round-status", r.id, "btn-line", ' data-do="' + st + '"'); }).join("") + "</div>" +
+            ideas.map(function (i) { return '<div class="entry"><p><strong>' + esc(i.title) + "</strong> by " + esc(i.author_name || "?") + " &middot; " + esc(i.age_group) + " circle &middot; <strong>" + (votes[i.id] || 0) + "</strong> votes" + (i.shortlisted ? ' <span class="badge st-open">Shortlisted</span>' : "") + (i.hidden ? ' <span class="badge st-archived">Hidden</span>' : "") + "</p><p>" + snip(i.summary) + '</p><div class="mc-actions">' + act(i.shortlisted ? "Remove from shortlist" : "Shortlist", "cm-idea-short", i.id) + act(i.hidden ? "Unhide" : "Hide", "cm-idea-hide", i.id) + "</div></div>"; }).join("") + "</div>";
+        }).join("");
+    }).catch(function (er) { warn(host, er); });
+  }
+
   function cmRooms(host) {
     sb().from("rooms").select("*").order("sort", { ascending: true }).then(function (r) {
       if (r.error) throw r.error; C.rooms = r.data || [];
@@ -468,6 +500,13 @@
     if (a === "purch-refund") { if (confirm("Refund the Crowns for this purchase?")) db.rpc("admin_refund_purchase", { p_purchase: id }).then(function (r) { if (r.error) return A.say(A.errText(r.error), true); A.say("Refunded. The Crowns are back in their wallet."); reload(); }); return true; }
     if (a === "purch-note") { var pn = prompt("Note for the member (they will see it):", ""); if (pn != null) return run(db.from("crown_purchases").update({ note: pn.slice(0, 300) || null }).eq("id", id), "Note saved."); return true; }
     if (a === "cm-view") { C.cview = id; reload(); return true; }
+    if (a === "cm-prompt-toggle") { var pp = (C.prompts || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("game_prompts").update({ active: !(pp && pp.active) }).eq("id", id), "Updated."); }
+    if (a === "cm-prompt-del") { if (confirm("Delete this game and its answers?")) run(db.from("game_prompts").delete().eq("id", id), "Deleted."); return true; }
+    if (a === "cm-chal-hide") { var ch = (C.chals || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("challenges").update({ hidden: !(ch && ch.hidden) }).eq("id", id), "Updated."); }
+    if (a === "cm-chal-remove") { if (confirm("Remove this challenge?")) run(db.from("challenges").update({ status: "Removed" }).eq("id", id), "Removed."); return true; }
+    if (a === "cm-round-status") return run(db.from("seed_rounds").update({ status: what }).eq("id", id), "Round moved to " + what + ".");
+    if (a === "cm-idea-short") { var id1 = (C.ideas || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("seed_ideas").update({ shortlisted: !(id1 && id1.shortlisted) }).eq("id", id), "Updated."); }
+    if (a === "cm-idea-hide") { var id2 = (C.ideas || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("seed_ideas").update({ hidden: !(id2 && id2.hidden) }).eq("id", id), "Updated."); }
     if (a === "cm-toggle-msg") { var mg = (C.msgs || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("messages").update({ hidden: !(mg && mg.hidden) }).eq("id", id), "Updated."); }
     if (a === "cm-del-msg") { if (confirm("Delete this message for good?")) run(db.from("messages").delete().eq("id", id), "Deleted."); return true; }
     if (a === "cm-toggle-rec") { var rc = (C.wall || []).filter(function (x) { return x.id === id; })[0]; return run(db.from("recognitions").update({ hidden: !(rc && rc.hidden) }).eq("id", id), "Updated."); }
@@ -577,6 +616,14 @@
       if (!(cost >= 1)) { t.fail({ message: "The cost must be at least 1 Crown." }); return true; }
       var orow = { name: v("of-name"), description: v("of-desc") || null, kind: v("of-kind"), cost: cost, stock: v("of-stock") === "" ? null : Math.max(0, parseInt(v("of-stock"), 10) || 0), adults_only: c("of-adults"), active: c("of-active"), sort_order: parseInt(v("of-order"), 10) || 0 };
       t.busy(true); (oid ? db.from("crown_offers").update(orow).eq("id", oid) : db.from("crown_offers").insert(orow)).then(function (r) { if (r.error) return t.fail(r.error); A.done("Offer saved."); }, t.fail); return true;
+    }
+    if (kind === "prompt") {
+      var pk = v("pr-kind"), lines = A.lines(document.getElementById("pr-opts").value), opts = lines.map(function (l) { var pr = l.split("|"); return pr.length > 1 ? { label: pr[0].trim().slice(0, 120), note: pr.slice(1).join("|").trim().slice(0, 300) } : { label: l.trim().slice(0, 120) }; }).filter(function (o) { return o.label; });
+      if (pk !== "icebreaker" && (opts.length < 2 || opts.length > 5)) { t.fail({ message: "Please give between 2 and 5 choices (one per line)." }); return true; }
+      t.busy(true); db.from("game_prompts").insert({ slug: "g-" + A.uuid().slice(0, 8), kind: pk, title: v("pr-title"), body: v("pr-body") || null, options: pk === "icebreaker" ? [] : opts, sort_order: 100 }).then(function (r) { if (r.error) return t.fail(r.error); A.done("Game added."); }, t.fail); return true;
+    }
+    if (kind === "round") {
+      t.busy(true); db.from("seed_rounds").insert({ title: v("rd-title"), description: v("rd-desc") || null, votes_per_member: Math.max(1, Math.min(10, parseInt(v("rd-votes"), 10) || 3)), status: "Draft" }).then(function (r) { if (r.error) return t.fail(r.error); A.done("Round created as a draft. Move it to Submissions when you're ready."); }, t.fail); return true;
     }
     if (kind === "room") {
       var slug = v("rm-slug").toLowerCase(); if (!/^[a-z0-9-]{2,30}$/.test(slug)) { t.fail({ message: "The short name can only use letters, numbers and dashes." }); return true; }
